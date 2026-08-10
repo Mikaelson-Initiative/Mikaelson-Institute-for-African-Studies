@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  /* Official Mikaelson Initiative brand colors — do not introduce colors outside this set. */
+  --mias-teal-deep: #003e45;
+  --mias-turquoise: #5ce1e6;
+  --mias-beige: #e9e1d8;
+  --mias-ink: #201d16;
+  --mias-yellow: #ffe665;
+  --mias-paper: #ffffff;
+
+  /* Computed tints for hover/secondary-panel states only — mathematical mixes of the
+     official hex values above, not new colors. Flagged in MIAS_Design_PRD.md Sec.2 as
+     needing brand-team sign-off before this ships. */
+  --mias-teal-deep-hover: #0a4f57;
+  --mias-teal-deep-panel: #062b30;
+  --mias-turquoise-hover: #7ee8ec;
+  --mias-beige-panel: #f2ece5;
+  --mias-ink-muted: #4a4438;
+}
+
+@theme inline {
+  --color-teal-deep: var(--mias-teal-deep);
+  --color-teal-deep-hover: var(--mias-teal-deep-hover);
+  --color-teal-deep-panel: var(--mias-teal-deep-panel);
+  --color-turquoise: var(--mias-turquoise);
+  --color-turquoise-hover: var(--mias-turquoise-hover);
+  --color-beige: var(--mias-beige);
+  --color-beige-panel: var(--mias-beige-panel);
+  --color-ink: var(--mias-ink);
+  --color-ink-muted: var(--mias-ink-muted);
+  --color-yellow: var(--mias-yellow);
+  --color-paper: var(--mias-paper);
+
+  --font-display: var(--font-baloo);
+  --font-body: var(--font-inter);
+  --font-mono-ledger: var(--font-ledger-mono);
+}
+
+body {
+  background: var(--mias-beige);
+  color: var(--mias-ink);
+  font-family: var(--font-inter);
+}
+
+/* Visible focus states everywhere — never rely on hover alone (Pre-Delivery Checklist, Accessibility). */
+:focus-visible {
+  outline: 2px solid var(--mias-turquoise);
+  outline-offset: 2px;
+}

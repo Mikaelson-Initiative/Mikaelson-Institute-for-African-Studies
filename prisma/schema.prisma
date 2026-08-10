@@ -1,0 +1,46 @@
+// MIAS_PRD.md Sec. 3/7: production datasource is Postgres (Neon/Supabase/Railway
+// on Vercel). This build uses SQLite locally so the submission pipeline works
+// end-to-end without provisioning real infrastructure — swap the provider and
+// DATABASE_URL below when Postgres credentials exist. Schema fields are kept
+// Postgres-compatible (no SQLite-only types) so that swap is a one-line change.
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SubmissionStatus {
+  submitted
+  in_review
+  revisions_requested
+  accepted
+  rejected
+  published
+}
+
+// MIAS_PRD.md Sec. 6/7 — Phase 1 scope only. Reviewer notes, volume
+// assignment, and registered-author accounts arrive with Phase 2/3's editor
+// dashboard and are intentionally not modeled yet.
+model Submission {
+  id          String            @id @default(cuid())
+  title       String
+  abstract    String
+  focusArea   String
+  authorName  String
+  authorEmail String
+  fileUrl     String
+  fileName    String
+  status      SubmissionStatus  @default(submitted)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
