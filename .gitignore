@@ -39,8 +39,17 @@ yarn-error.log*
 # local dev-only data stores (Postgres/S3 stand-ins — see prisma/schema.prisma)
 /prisma/dev.db
 /prisma/dev.db-journal
+/dev.db
+/dev.db-journal
 /uploads
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# a separate, independent Next.js reference project (own node_modules/.next) —
+# not part of this app, dropped in as a design reference. See CLAUDE.md.
+/mias
+
+# Claude Code tooling/skills — not application code
+/.claude

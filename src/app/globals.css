@@ -48,3 +48,23 @@ body {
   outline: 2px solid var(--mias-turquoise);
   outline-offset: 2px;
 }
+
+/* Library section's title card, timed to the book-opening video's ~4s loop:
+   visible while the cover faces the camera, fades before it opens. Only
+   applied when motion is allowed — see library-showcase.tsx. */
+@keyframes book-title-fade {
+  0%,
+  30% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  50%,
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.animate-book-title {
+  animation: book-title-fade 4s ease-in-out infinite;
+}

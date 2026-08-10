@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // A separate, independent Next.js project living as a sibling folder —
+    // not part of this app, has its own tooling/conventions.
+    "mias/**",
   ]),
 ]);
 

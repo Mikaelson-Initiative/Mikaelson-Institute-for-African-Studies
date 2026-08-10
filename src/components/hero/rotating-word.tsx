@@ -16,6 +16,10 @@ export function RotatingWord({ words, className = "" }: { words: string[]; class
   const [index, setIndex] = useState(0);
   const shouldReduceMotion = useReducedMotion();
 
+  // Fixed to the longest word's width so switching words never reflows the
+  // headline (and, with it, the whole hero's height) — the bug being fixed.
+  const longestWordChars = Math.max(...words.map((word) => word.length));
+
   useEffect(() => {
     if (shouldReduceMotion) return;
     const id = setInterval(() => {
@@ -26,7 +30,11 @@ export function RotatingWord({ words, className = "" }: { words: string[]; class
 
   return (
     <span className="relative inline-block">
-      <span aria-hidden="true" className={`relative inline-block ${className}`}>
+      <span
+        aria-hidden="true"
+        style={{ minWidth: `${longestWordChars}ch` }}
+        className={`relative inline-block text-center ${className}`}
+      >
         <AnimatePresence mode="wait" initial={false}>
           <motion.span
             key={words[index]}

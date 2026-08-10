@@ -14,7 +14,7 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-teal-deep text-paper">
+    <header className="sticky top-0 z-40 border-b border-ink/10 bg-beige text-ink">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <Link
           href="/"
@@ -22,7 +22,7 @@ export function SiteHeader() {
           onClick={() => setMenuOpen(false)}
         >
           <Image
-            src="/logos/svg/mark-primary-dark.svg"
+            src="/logos/svg/mark-primary-light.svg"
             alt=""
             width={64}
             height={64}
@@ -30,7 +30,7 @@ export function SiteHeader() {
             priority
           />
           <span className="sr-only">Mikaelson Institute for African Studies</span>
-          <span aria-hidden="true" className="text-turquoise">
+          <span aria-hidden="true" className="text-teal-deep">
             MIAS
           </span>
         </Link>
@@ -45,9 +45,7 @@ export function SiteHeader() {
                     href={link.href}
                     aria-current={active ? "page" : undefined}
                     className={`inline-flex min-h-11 items-center rounded px-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 ${
-                      active
-                        ? "text-turquoise"
-                        : "text-paper/85 hover:text-turquoise"
+                      active ? "text-teal-deep" : "text-ink/70 hover:text-teal-deep"
                     }`}
                   >
                     {link.label}
@@ -78,7 +76,7 @@ export function SiteHeader() {
       </div>
 
       {menuOpen && (
-        <nav id="mobile-nav" aria-label="Primary" className="border-t border-paper/15 lg:hidden">
+        <nav id="mobile-nav" aria-label="Primary" className="border-t border-ink/10 lg:hidden">
           <ul className="flex flex-col px-4 py-2">
             {[...primaryNavLinks, ...aboutDropdownLinks].map((link) => {
               const active = pathname === link.href;
@@ -88,7 +86,7 @@ export function SiteHeader() {
                     href={link.href}
                     aria-current={active ? "page" : undefined}
                     className={`flex min-h-11 items-center text-base font-medium ${
-                      active ? "text-turquoise" : "text-paper/85"
+                      active ? "text-teal-deep" : "text-ink/70"
                     }`}
                     onClick={() => setMenuOpen(false)}
                   >

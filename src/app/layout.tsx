@@ -3,6 +3,7 @@ import { Baloo_2, IBM_Plex_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { CursorFollower } from "@/components/motion/cursor-follower";
 
 // Grift is the brand-official header font; the license/webfont files have not
 // been provided yet (MIAS_PRD.md Sec. 10, Q1). Baloo 2 is the documented
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to main content
         </a>
+        <CursorFollower />
         <SiteHeader />
         <main id="main-content" className="flex-1">
           {children}
