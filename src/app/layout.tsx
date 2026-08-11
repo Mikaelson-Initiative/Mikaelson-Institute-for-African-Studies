@@ -34,6 +34,9 @@ export const metadata: Metadata = {
   },
   description:
     "A pan-African academic research institute, publishing scholarship across history and decolonization, society and politics, arts and culture, and religion and philosophy.",
+  verification: {
+    google: "CyGGGZptjbYyyiMNb0mi9frcF1QKDTWZm2rYwfNXD_o",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
