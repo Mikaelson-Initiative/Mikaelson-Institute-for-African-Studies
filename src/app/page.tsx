@@ -44,8 +44,8 @@ export default function HomePage() {
                   Submit a Paper
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </Button>
-                <Button href="/call-for-papers" variant="ghost-inverse">
-                  Read the Call for Papers
+                <Button href="/library" variant="ghost-inverse">
+                  Browse the Library
                 </Button>
               </div>
             </StaggerItem>

@@ -68,3 +68,43 @@ body {
 .animate-book-title {
   animation: book-title-fade 4s ease-in-out infinite;
 }
+
+/* ── Fan carousel layout ─────────────────────────────────────────────
+   Sizes for the card-fan-carousel component (.fan-layout / .fan-card).
+   Cards use a book-cover 2:3 aspect ratio. Heights match the
+   breakpoint thresholds used in the component's getResponsiveMultiplier.
+   ───────────────────────────────────────────────────────────────────── */
+.fan-layout {
+  height: 32rem;  /* mobile */
+}
+
+.fan-card {
+  position: absolute;
+  width: 11.5rem;
+  height: 17.25rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.26), 0 2px 10px rgba(0, 0, 0, 0.14);
+  flex-shrink: 0;
+  will-change: transform, opacity;
+}
+
+@media (min-width: 480px) {
+  .fan-layout { height: 37rem; }
+  .fan-card   { width: 13.75rem; height: 20.75rem; }
+}
+
+@media (min-width: 640px) {
+  .fan-layout { height: 41rem; }
+  .fan-card   { width: 15.5rem; height: 23.25rem; }
+}
+
+@media (min-width: 768px) {
+  .fan-layout { height: 48rem; }
+  .fan-card   { width: 18.5rem; height: 27.5rem; border-radius: 0.875rem; }
+}
+
+@media (min-width: 1024px) {
+  .fan-layout { height: 55rem; }
+  .fan-card   { width: 22rem; height: 33rem; border-radius: 1rem; }
+}

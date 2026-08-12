@@ -3,27 +3,45 @@ export type NavLink = {
   label: string;
 };
 
-// Direct top-level links.
-// Publications/Archive is Phase 3 (MIAS_PRD.md Sec. 9 Build Order) — added
-// here once its pages exist so this list never links somewhere unbuilt.
-export const primaryNavLinks: NavLink[] = [
-  { href: "/focus-areas", label: "Focus Areas" },
-  { href: "/framework", label: "Framework" },
-  { href: "/call-for-papers", label: "Call for Papers" },
-];
+export type NavGroup = {
+  label: string;
+  links: NavLink[];
+};
 
-// Grouped under the "About" dropdown in the header (desktop) — shown as a
-// flat continuation of the mobile menu instead of a nested submenu there.
-export const aboutDropdownLinks: NavLink[] = [
-  { href: "/about", label: "About Us" },
-  { href: "/team", label: "Team" },
-  { href: "/community", label: "Community" },
-  { href: "/contact", label: "Contact" },
+// Three grouped dropdowns replace the old flat top-level links + single
+// About dropdown. Framework and Community were removed from here on
+// request — their pages still exist, just unlinked from navigation.
+export const navGroups: NavGroup[] = [
+  {
+    label: "Research Community",
+    links: [
+      { href: "/focus-areas", label: "Focus Areas" },
+      { href: "/call-for-papers", label: "Call for Papers" },
+      { href: "/submit", label: "Submit a Paper" },
+      { href: "/ubuntu", label: "Ubuntu" },
+    ],
+  },
+  {
+    label: "Library",
+    links: [
+      { href: "/library/books", label: "Books" },
+      { href: "/library/archive", label: "Published Papers / Archive" },
+    ],
+  },
+  {
+    label: "About",
+    links: [
+      { href: "/about", label: "Mission" },
+      { href: "/team", label: "Team" },
+      { href: "/partners", label: "Partners" },
+    ],
+  },
 ];
 
 export const footerNavLinks: NavLink[] = [
-  ...primaryNavLinks,
-  ...aboutDropdownLinks,
+  ...navGroups.flatMap((group) => group.links),
+  { href: "/library", label: "Library" },
+  { href: "/contact", label: "Contact" },
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/terms", label: "Terms of Submission" },
 ];
