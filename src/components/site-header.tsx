@@ -19,7 +19,7 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-display text-lg font-semibold tracking-tight sm:text-xl"
+          className="flex items-center gap-2 font-display text-xs font-semibold tracking-tight sm:gap-2.5 sm:text-lg lg:text-xl"
           onClick={() => setMenuOpen(false)}
         >
           <Image

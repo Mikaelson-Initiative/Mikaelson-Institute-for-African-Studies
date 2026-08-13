@@ -39,13 +39,18 @@ export function NavDropdown({ label, links }: { label: string; links: NavLink[] 
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative">
+    <div
+      ref={containerRef}
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
       <button
         type="button"
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className={`inline-flex min-h-11 items-center gap-1 rounded px-3 text-sm font-medium whitespace-nowrap transition-colors duration-200 ${
+        className={`inline-flex min-h-11 items-center gap-1 rounded px-3 text-sm font-semibold tracking-wide whitespace-nowrap transition-colors duration-200 ${
           active ? "text-teal-deep" : "text-ink/70 hover:text-teal-deep"
         }`}
       >
@@ -57,29 +62,31 @@ export function NavDropdown({ label, links }: { label: string; links: NavLink[] 
       </button>
 
       {open && (
-        <ul
-          role="menu"
-          aria-label={label}
-          className="absolute top-full left-0 mt-1 min-w-44 rounded-md border border-ink/10 bg-paper py-1 shadow-lg"
-        >
-          {links.map((link) => {
-            const linkActive = pathname === link.href;
-            return (
-              <li key={link.href} role="none">
-                <Link
-                  role="menuitem"
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className={`flex min-h-11 items-center px-4 text-sm font-medium whitespace-nowrap ${
-                    linkActive ? "text-teal-deep" : "text-ink/70 hover:text-teal-deep"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="absolute top-full left-0 pt-2 z-50">
+          <ul
+            role="menu"
+            aria-label={label}
+            className="min-w-56 rounded-2xl border border-black/5 bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.08)]"
+          >
+            {links.map((link) => {
+              const linkActive = pathname === link.href;
+              return (
+                <li key={link.href} role="none">
+                  <Link
+                    role="menuitem"
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className={`flex items-center rounded-xl px-4 py-3 text-sm font-semibold tracking-wide whitespace-nowrap transition-colors duration-150 ${
+                      linkActive ? "bg-black/5 text-[#2e4b46]" : "text-ink/80 hover:bg-black/5 hover:text-[#2e4b46]"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
     </div>
   );

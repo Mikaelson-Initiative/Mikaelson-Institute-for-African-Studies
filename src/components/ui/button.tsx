@@ -7,16 +7,14 @@ type Variant = "primary" | "secondary" | "ghost" | "ghost-inverse";
 // only, 200ms, per the Animation PRD's micro-interaction rules. Disabled
 // buttons stay flat: no lift, no shadow growth.
 const base =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:translate-y-0";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-sans font-semibold tracking-wide transition-all duration-200 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-turquoise text-teal-deep hover:bg-turquoise-hover",
-  secondary: "bg-teal-deep text-paper hover:bg-teal-deep-hover",
-  ghost: "border-2 border-ink/20 text-ink shadow-none hover:border-teal-deep hover:text-teal-deep hover:shadow-none",
-  // For use on dark (teal) backgrounds — hero, CFP banner — where the ink-
-  // based ghost variant above would be invisible.
+  primary: "bg-white text-[#2e4b46] shadow-[inset_0px_0px_30px_0px_#2e4b46] border border-black/5 hover:shadow-[inset_0px_0px_40px_0px_#2e4b46]",
+  secondary: "bg-[#2e4b46] text-white shadow-[inset_0px_0px_30px_0px_rgba(255,255,255,0.2)] border border-white/10",
+  ghost: "bg-transparent text-[#2e4b46] border-2 border-[#2e4b46]/20 hover:border-[#2e4b46]",
   "ghost-inverse":
-    "border-2 border-paper/30 text-paper shadow-none hover:border-turquoise hover:text-turquoise hover:shadow-none",
+    "bg-transparent text-white border-2 border-white/30 hover:border-white hover:bg-white/5",
 };
 
 type CommonProps = {

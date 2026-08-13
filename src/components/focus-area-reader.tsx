@@ -2,7 +2,6 @@
 
 import { useReducedMotion } from "framer-motion";
 import { BookOpen, ChevronDown, ChevronUp, Landmark, Palette, Scale } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { TiltCard } from "@/components/motion/tilt-card";
 import type { FocusArea } from "@/lib/focus-areas";
@@ -69,19 +68,13 @@ export function FocusAreaReader({ areas }: { areas: FocusArea[] }) {
               aria-hidden={i !== index}
             >
               <TiltCard className="h-full">
-                <Link
-                  href={`/focus-areas#${area.slug}`}
-                  className="group flex h-full flex-col items-center justify-center rounded-2xl bg-paper px-6 py-8 text-center transition-colors duration-200 hover:bg-beige-panel sm:px-10"
-                >
+                <div className="group flex h-full flex-col items-center justify-center rounded-2xl bg-paper px-6 py-8 text-center sm:px-10">
                   <Icon aria-hidden="true" className="h-12 w-12 text-teal-deep" />
                   <h3 className="mt-6 font-display text-2xl font-semibold text-ink sm:text-3xl">
                     {area.title}
                   </h3>
                   <p className="mt-4 text-base text-ink-muted sm:text-lg">{area.summary}</p>
-                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-teal-deep group-hover:gap-2">
-                    Explore this area →
-                  </span>
-                </Link>
+                </div>
               </TiltCard>
             </div>
           );

@@ -1,12 +1,15 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   motion,
   AnimatePresence,
   useMotionValue,
   useSpring,
 } from "framer-motion";
+import { ArrowRight, Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FloatingImage, cursorSpring } from "@/components/floating-image";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,52 +30,6 @@ export interface TeamCategory {
 
 const nameSpring  = { type: "spring" as const, stiffness: 300, damping: 22 };
 const metaSpring  = { type: "spring" as const, stiffness: 200, damping: 30 };
-// Tight spring for cursor-follow — buttery, no overshoot
-const cursorSpring = { stiffness: 260, damping: 28 };
-
-// ── FloatingImage ─────────────────────────────────────────────────────────────
-// Receives motion-value x/y so position updates happen outside React's render
-// cycle — no state re-renders on every mousemove.
-
-function FloatingImage({
-  src,
-  alt,
-  x,
-  y,
-}: {
-  src: string;
-  alt: string;
-  x: ReturnType<typeof useMotionValue<number>>;
-  y: ReturnType<typeof useMotionValue<number>>;
-}) {
-  return (
-    <motion.div
-      className="pointer-events-none fixed z-[9999] overflow-hidden rounded-2xl shadow-2xl"
-      style={{
-        width: 200,
-        height: 280,
-        x,
-        y,
-        translateX: 28,
-        translateY: -140,
-      }}
-      initial={{ opacity: 0, scale: 0.85 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt}
-        draggable={false}
-        className="h-full w-full object-cover"
-      />
-      {/* Vignette ring */}
-      <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/20" />
-    </motion.div>
-  );
-}
 
 // ── MemberRow ─────────────────────────────────────────────────────────────────
 
@@ -88,51 +45,91 @@ function MemberRow({
   onLeave: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <div
-      className={`flex cursor-default select-none items-center gap-6 py-5 ${
-        !isLast ? "border-b border-ink/10" : ""
-      }`}
-      onMouseEnter={() => { setHovered(true);  onEnter(member); }}
-      onMouseLeave={() => { setHovered(false); onLeave(); }}
-    >
-      {/* Index */}
-      <span className="w-8 shrink-0 font-mono text-xs tabular-nums text-ink-muted/40 transition-colors duration-300 group-hover:text-ink-muted">
-        {member.index}
-      </span>
+    <div className={!isLast ? "border-b border-ink/10" : ""}>
+      <div
+        className="flex cursor-default select-none items-center gap-4 py-5 sm:gap-6"
+        onMouseEnter={() => { setHovered(true);  onEnter(member); }}
+        onMouseLeave={() => { setHovered(false); onLeave(); }}
+      >
+        {/* Index */}
+        <span className="w-8 shrink-0 font-mono text-xs tabular-nums text-ink-muted/40 transition-colors duration-300 group-hover:text-ink-muted">
+          {member.index}
+        </span>
 
-      {/* Name */}
-      <div className="flex min-w-0 flex-1 items-baseline">
-        <motion.span
-          className="block truncate font-display font-semibold leading-none tracking-tight"
-          animate={{
-            x:     hovered ? 16 : 0,
-            scale: hovered ? 1.02 : 1,
-            color: hovered ? "#003e45" : "#4a4438",   // teal-deep on hover, ink-muted at rest
-          }}
-          transition={nameSpring}
-          style={{ fontSize: "clamp(1.5rem, 3vw, 2.75rem)" }}
+        {/* Name */}
+        <div className="flex min-w-0 flex-1 items-baseline">
+          <motion.span
+            className="block truncate font-display font-semibold leading-none tracking-tight"
+            animate={{
+              x:     hovered ? 16 : 0,
+              scale: hovered ? 1.02 : 1,
+              color: hovered ? "#003e45" : "#4a4438",   // teal-deep on hover, ink-muted at rest
+            }}
+            transition={nameSpring}
+            style={{ fontSize: "clamp(1.5rem, 3vw, 2.75rem)" }}
+          >
+            {member.name}
+          </motion.span>
+        </div>
+
+        {/* Role + affiliation — desktop/tablet only, hover reveals it */}
+        <motion.div
+          className="hidden shrink-0 text-right sm:block"
+          animate={{ opacity: hovered ? 1 : 0.4 }}
+          transition={metaSpring}
         >
-          {member.name}
-        </motion.span>
+          <p className="font-mono-ledger text-xs uppercase tracking-widest text-ink-muted">
+            {member.role}
+          </p>
+          {member.affiliation && (
+            <p className="mt-0.5 font-mono-ledger text-xs text-ink/40">
+              {member.affiliation}
+            </p>
+          )}
+        </motion.div>
+
+        {/* Mobile: no hover, so a tap-to-reveal "+" replaces the floating
+            image preview — there's no cursor to follow on touch. */}
+        {member.image && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            aria-label={expanded ? `Hide ${member.name}'s photo` : `Show ${member.name}'s photo`}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 text-ink-muted transition-colors duration-200 active:bg-ink/5 sm:hidden"
+          >
+            {expanded ? <X aria-hidden="true" className="h-4 w-4" /> : <Plus aria-hidden="true" className="h-4 w-4" />}
+          </button>
+        )}
       </div>
 
-      {/* Role + affiliation */}
-      <motion.div
-        className="hidden shrink-0 text-right sm:block"
-        animate={{ opacity: hovered ? 1 : 0.4 }}
-        transition={metaSpring}
-      >
-        <p className="font-mono-ledger text-xs uppercase tracking-widest text-ink-muted">
-          {member.role}
-        </p>
-        {member.affiliation && (
-          <p className="mt-0.5 font-mono-ledger text-xs text-ink/40">
-            {member.affiliation}
-          </p>
+      {/* Mobile-only inline photo reveal */}
+      <AnimatePresence initial={false}>
+        {expanded && member.image && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden sm:hidden"
+          >
+            <div className="pb-5">
+              <p className="mb-2 font-mono-ledger text-xs uppercase tracking-widest text-ink-muted">
+                {member.role}
+              </p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={member.image}
+                alt={member.name}
+                className="h-56 w-full rounded-2xl object-cover shadow-lg"
+              />
+            </div>
+          </motion.div>
         )}
-      </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -321,18 +318,20 @@ export function KineticTeam({ categories }: { categories: TeamCategory[] }) {
             <p className="font-mono-ledger text-xs uppercase tracking-widest text-ink-muted/60">
               Join Us
             </p>
+            <h2 className="mt-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
+              Interested in making an impact?
+            </h2>
             <p className="mt-3 max-w-lg text-base text-ink-muted">
               We are building our community. If you are a researcher, scholar,
               editor, or practitioner whose work engages seriously with Africa,
               we want to hear from you.
             </p>
-            <a
-              href="/contact"
-              className="mt-6 inline-flex items-center gap-2 font-mono-ledger text-xs uppercase tracking-widest text-teal-deep transition-colors duration-200 hover:text-teal-deep-hover"
-            >
-              Get in touch
-              <span aria-hidden="true">→</span>
-            </a>
+            <div className="mt-6">
+              <Button href="/contact" variant="primary">
+                Get in Touch
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Button>
+            </div>
           </motion.div>
         </div>
       </div>

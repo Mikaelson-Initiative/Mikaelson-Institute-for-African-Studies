@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/page-hero";
-import { Timeline } from "@/components/timeline";
+import { ScrollSequence } from "@/components/scroll-sequence";
 import { frameworkStages } from "@/lib/framework-stages";
 
 export const metadata: Metadata = {
@@ -9,6 +9,12 @@ export const metadata: Metadata = {
 };
 
 export default function FrameworkPage() {
+  const scrollItems = frameworkStages.map((stage) => ({
+    title: stage.label,
+    description: stage.summary,
+    image: `/framework/${stage.slug}.png`
+  }));
+
   return (
     <>
       <PageHero
@@ -17,9 +23,7 @@ export default function FrameworkPage() {
         lede="Our History & Decolonization research follows a single historical throughline, from pre-colonial societies to the contemporary continent — one of MIAS's four focus areas, not the whole of its work."
       />
 
-      <div className="mx-auto max-w-2xl px-4 py-20 sm:px-6">
-        <Timeline stages={frameworkStages} />
-      </div>
+      <ScrollSequence items={scrollItems} />
     </>
   );
 }
