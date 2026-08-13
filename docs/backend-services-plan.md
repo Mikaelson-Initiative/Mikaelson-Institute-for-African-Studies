@@ -13,11 +13,25 @@ As of 2026-08-13, all three Phase 1 backend dependencies are wired to real infra
 - **End-to-end verified against the real infrastructure, multiple passes**: submitted real contact messages through both the actual browser form and direct requests to the running `/api/contact` route (landed in Neon, real emails sent via Resend — each confirmed with a real Resend message ID), and a real multipart submission via curl against `/api/submissions` (landed in `Submission`, `fileUrl` pointing at a genuine `https://*.public.blob.vercel-storage.com/...` URL). All test rows and the test blob were deleted afterward — nothing test-related was left in the real database/store.
 - `src/app/sitemap.ts` / `src/app/robots.ts` — verified rendering correctly at `/sitemap.xml` and `/robots.txt` (14 real routes, `/globe-test` and `/api/*` excluded).
 
-### What's still needed from you
+## Phase 1: fully live in production (2026-08-13)
 
-1. The site's confirmed **production domain**, to set as `NEXT_PUBLIC_SITE_URL` (sitemap/robots fall back to the Vercel deployment URL until then).
-2. Decide whether the Blob store's public-access mode is acceptable long-term, or whether to provision a private-access store instead.
-3. Set `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL` as **Vercel env vars** too (Production + Preview, not just local `.env`) via `vercel env add` or the dashboard, and run `prisma migrate deploy` against them in the deploy step — everything above is only proven locally so far, not yet live in production.
+`DATABASE_URL` and `DATABASE_URL_UNPOOLED` turned out to already be auto-provisioned by the Neon Marketplace integration; added `BLOB_READ_WRITE_TOKEN`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `CONTACT_NOTIFICATION_EMAIL` as Vercel env vars (Production + Preview). The production domain was an open question — resolved by checking Vercel's own domain assignments rather than guessing: this project owns `institute.mikaelsoninitiative.org` (matching the Resend-verified domain), so `NEXT_PUBLIC_SITE_URL` is now set for Production. Redeployed and verified live: a real POST to `https://institute.mikaelsoninitiative.org/api/contact` returned 201 and landed in Neon; `sitemap.xml`/`robots.txt` emit the real domain.
+
+Also found and documented: this Neon project's Auth integration holds a long-lived session on the unpooled endpoint whose advisory lock ID collides with Prisma migrations' — `vercel-build` uses the pooled `DATABASE_URL` for `prisma migrate deploy` instead, which has worked reliably.
+
+Remaining open item: decide whether the Blob store's public-access mode is acceptable long-term, or provision a private-access store instead.
+
+## Phase 2 progress: lightweight CMS done, rate limiting + donations blocked
+
+**Done and live in production**: `TeamMember`, `Partner`, and `BookRecommendation` models added; the real existing content from `team/page.tsx`, `partners/page.tsx`, and `library/books/page.tsx` was migrated verbatim (nothing invented) via `scripts/seed-cms.cjs`. All three pages now fetch from Postgres with `revalidate = 60` (not fully static — otherwise a Prisma Studio edit wouldn't show up until the next deploy). Verified live: `institute.mikaelsoninitiative.org/team`, `/partners`, and `/library/books` all render the DB-sourced content. Editable for now via `npx prisma studio` — a real admin UI is Phase 3, pending the auth decision below.
+
+Not migrated (deliberately): Framework timeline and homepage Focus Areas stay hardcoded — fixed institutional decisions, not growing content. Library/Archive stays hardcoded too — its content is Phase 3's job (pulling from `Submission` once papers are published), not this CMS pass.
+
+**Blocked, need real accounts to proceed** (per the project's non-fabrication rule — nothing below will be guessed or stubbed with fake data):
+
+- **Rate limiting**: needs Upstash Redis, provisioned via Vercel Marketplace (Storage tab → Create → Upstash), which auto-injects `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`.
+- **Donations/Payments**: needs a real Paystack (or Flutterwave) business account with bank settlement details — this can't be created on your behalf.
+- **Auth & Admin Dashboard** (Phase 3, listed here since it unblocks a real CMS UI): needs a decision — Clerk/Auth.js login-gated panel, or is direct-to-database editing via Prisma Studio fine for now given the team is small?
 
 ## The big surprise: two forms are already real
 
