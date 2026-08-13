@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { KineticTeam, type TeamCategory } from "@/components/kinetic-team";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Team",
@@ -7,61 +8,49 @@ export const metadata: Metadata = {
     "The people behind Mikaelson Institute for African Studies — researchers, scholars, editors, and community members committed to rigorous African scholarship.",
 };
 
-// ── Team data ─────────────────────────────────────────────────────────────────
+// Revalidate periodically instead of caching at build time — otherwise a
+// TeamMember row edited via Prisma Studio wouldn't show up until the next
+// deploy, defeating the point of moving this off a hardcoded array.
+export const revalidate = 60;
+
+// Team roster now lives in the TeamMember table (see prisma/schema.prisma
+// and docs/backend-services-plan.md's Phase 2 CMS section) instead of a
+// hardcoded array, so staff can add/remove people via Prisma Studio
+// (`npx prisma studio`) without a code deploy.
 //
 // RULE: Do NOT invent names, credentials, affiliations, or biographies.
-// Each category is seeded with an empty members array until confirmed profiles
-// are provided. The component renders placeholder skeleton rows in their place.
-// To add a person, append a TeamMember object with at minimum: index, name, role.
-// The optional `image` field enables the floating preview card on hover.
-//
-// Example entry (remove comment when real data is confirmed):
-//   {
-//     index: "01",
-//     name: "Full Name",
-//     role: "Director of Research",
-//     affiliation: "Institution Name",
-//     image: "/team/full-name.jpg",  // place in /public/team/
-//   }
-
-const categories: TeamCategory[] = [
-  {
-    label: "Executive Leadership",
-    members: [
-      {
-        index: "01",
-        name: "Michael Olukayode",
-        role: "Founder & Research Fellow",
-        affiliation: "Mikaelson Institute for African Studies",
-        image: "/team/20240726_164330.jpeg",
-      },
-    ],
-  },
-
-  {
-    label: "Research Fellows",
-    members: [],
-  },
-  {
-    label: "Research Associates",
-    members: [],
-  },
-  {
-    label: "Editorial Team",
-    members: [],
-  },
-  {
-    label: "Library & Archives",
-    members: [],
-  },
-  {
-    label: "Advisory Council",
-    members: [],
-  },
+// Categories with no rows render the component's placeholder skeleton rows.
+const CATEGORY_ORDER = [
+  "Executive Leadership",
+  "Research Fellows",
+  "Research Associates",
+  "Editorial Team",
+  "Library & Archives",
+  "Advisory Council",
 ];
 
-export default function TeamPage() {
-  return (
-    <KineticTeam categories={categories} />
-  );
+export default async function TeamPage() {
+  const members = await prisma.teamMember.findMany({
+    orderBy: [{ category: "asc" }, { sortOrder: "asc" }],
+  });
+
+  const byCategory = new Map<string, TeamCategory["members"]>();
+  for (const member of members) {
+    const list = byCategory.get(member.category) ?? [];
+    list.push({
+      index: member.displayIndex,
+      name: member.name,
+      role: member.role,
+      affiliation: member.affiliation ?? undefined,
+      image: member.image ?? undefined,
+    });
+    byCategory.set(member.category, list);
+  }
+
+  const categories: TeamCategory[] = CATEGORY_ORDER.map((label) => ({
+    label,
+    members: byCategory.get(label) ?? [],
+  }));
+
+  return <KineticTeam categories={categories} />;
 }

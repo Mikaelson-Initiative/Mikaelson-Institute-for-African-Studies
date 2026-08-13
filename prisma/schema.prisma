@@ -42,3 +42,49 @@ model ContactMessage {
   message   String
   createdAt DateTime @default(now())
 }
+
+// Phase 2 lightweight CMS — moves genuinely growing site content (team
+// roster, partner list, recommended reading) out of hardcoded arrays so
+// non-technical staff can edit it without a code deploy. Editable for now
+// via Prisma Studio (`npx prisma studio`) rather than a dedicated admin UI —
+// see docs/backend-services-plan.md, which defers a real admin dashboard to
+// Phase 3 pending an auth decision.
+model TeamMember {
+  id           String   @id @default(cuid())
+  category     String
+  sortOrder    Int      @default(0)
+  displayIndex String
+  name         String
+  role         String
+  affiliation  String?
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([category, sortOrder])
+}
+
+model Partner {
+  id        String   @id @default(cuid())
+  sortOrder Int      @default(0)
+  name      String
+  type      String?
+  logo      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+model BookRecommendation {
+  id        String   @id @default(cuid())
+  genre     String
+  sortOrder Int      @default(0)
+  title     String
+  imgUrl    String
+  linkUrl   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([genre, sortOrder])
+}
