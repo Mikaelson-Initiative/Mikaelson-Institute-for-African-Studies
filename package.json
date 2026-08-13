@@ -7,27 +7,32 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma migrate deploy && next build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
-    "@prisma/adapter-better-sqlite3": "^7.9.1",
+    "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
+    "@vercel/blob": "^2.8.0",
     "framer-motion": "^13.0.0",
     "gsap": "^3.15.0",
     "lucide-react": "^1.31.0",
     "next": "16.3.0",
+    "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-hook-form": "^7.85.0",
+    "resend": "^6.20.0",
     "three": "^0.185.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.21.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.185.4",
@@ -40,7 +45,6 @@
   },
   "allowScripts": {
     "@prisma/engines@7.9.1": true,
-    "better-sqlite3@12.11.1": true,
     "prisma@7.9.1": true,
     "unrs-resolver@1.12.2": true
   }

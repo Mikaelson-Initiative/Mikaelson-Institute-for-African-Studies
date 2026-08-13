@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
+import { sendEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import {
   ACCEPTED_FILE_TYPES,
@@ -9,16 +11,41 @@ import {
   submissionFieldsSchema,
 } from "@/lib/validation/submission";
 
-// Dev stand-in for S3/Cloudflare R2 (MIAS_PRD.md Sec. 3) — files land outside
-// /public so they're never publicly reachable by URL, matching the
-// non-functional requirement that unpublished submissions stay access-controlled.
+// With BLOB_READ_WRITE_TOKEN set, uploads go to Vercel Blob. Without it
+// (local dev with no token provisioned yet), falls back to the local
+// filesystem — see .env.example. That fallback only works under
+// `npm run dev`; Vercel Functions have an ephemeral, read-only filesystem
+// outside /tmp, so BLOB_READ_WRITE_TOKEN must be set before deploying.
 //
-// LOCAL DEV ONLY: this writes to the local filesystem, which works under
-// `npm run dev` but NOT once deployed — Vercel Functions have an ephemeral,
-// read-only filesystem outside /tmp, so writes here would silently vanish in
-// production. This must be swapped for Vercel Blob (or S3/R2) before deploy;
-// no storage credentials exist yet to wire that up (see MIAS_PRD.md Sec. 3).
+// NOTE ON ACCESS CONTROL: the provisioned Blob store is public-access only
+// (Vercel Blob's private-access mode is a separate store configuration,
+// opted into at store creation — this store wasn't). `put(..., {access:
+// "private"})` fails with "Cannot use private access on a public store"
+// against it. Filenames are still an unguessable UUID (no directory
+// listing, no public page links to them), but the URL is fetchable by
+// anyone who obtains it — this is weaker than the old local-disk behavior,
+// where files sat entirely outside any served route. If tighter access
+// control matters before Phase 3's admin/download gating exists, provision
+// a dedicated private-access Blob store instead.
 const UPLOAD_DIR = path.join(process.cwd(), "uploads", "submissions");
+
+async function storeSubmissionFile(file: File): Promise<string> {
+  const extension = file.name.split(".").pop();
+  const storedFileName = `${randomUUID()}.${extension}`;
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blob = await put(`submissions/${storedFileName}`, file, {
+      access: "public",
+      addRandomSuffix: false,
+    });
+    return blob.url;
+  }
+
+  await mkdir(UPLOAD_DIR, { recursive: true });
+  const storedPath = path.join(UPLOAD_DIR, storedFileName);
+  await writeFile(storedPath, Buffer.from(await file.arrayBuffer()));
+  return storedPath;
+}
 
 export async function POST(request: Request) {
   const formData = await request.formData();
@@ -58,25 +85,21 @@ export async function POST(request: Request) {
     );
   }
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
-  const extension = file.name.split(".").pop();
-  const storedFileName = `${randomUUID()}.${extension}`;
-  const storedPath = path.join(UPLOAD_DIR, storedFileName);
-  await writeFile(storedPath, Buffer.from(await file.arrayBuffer()));
+  const fileUrl = await storeSubmissionFile(file);
 
   const submission = await prisma.submission.create({
     data: {
       ...fields.data,
-      fileUrl: storedPath,
+      fileUrl,
       fileName: file.name,
     },
   });
 
-  // Dev stand-in for Resend/SendGrid (MIAS_PRD.md Sec. 3) — logs instead of
-  // sending until real email credentials exist.
-  console.log(
-    `[dev-email] Confirmation for ${submission.authorEmail}: submission ${submission.id} received.`,
-  );
+  await sendEmail({
+    to: submission.authorEmail,
+    subject: "We received your submission",
+    html: `<p>Thank you for submitting "${submission.title}" to Mikaelson Institute for African Studies.</p><p>Your tracking reference is <strong>${submission.id}</strong>.</p>`,
+  });
 
   return NextResponse.json({ id: submission.id }, { status: 201 });
 }

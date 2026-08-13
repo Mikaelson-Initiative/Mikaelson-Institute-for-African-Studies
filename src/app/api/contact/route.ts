@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { notificationRecipient, sendEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { contactSchema } from "@/lib/validation/contact";
 
@@ -15,8 +16,11 @@ export async function POST(request: Request) {
 
   const message = await prisma.contactMessage.create({ data: fields.data });
 
-  // Dev stand-in for Resend/SendGrid — see src/app/api/submissions/route.ts.
-  console.log(`[dev-email] Contact message ${message.id} from ${message.email} logged.`);
+  await sendEmail({
+    to: notificationRecipient(),
+    subject: `New contact message from ${message.name}`,
+    html: `<p><strong>From:</strong> ${message.name} (${message.email})</p><p>${message.message}</p>`,
+  });
 
   return NextResponse.json({ id: message.id }, { status: 201 });
 }
