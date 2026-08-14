@@ -79,6 +79,7 @@ model Partner {
 
 model BookRecommendation {
   id        String   @id @default(cuid())
+  category  String   @default("Book") // E.g., "Book" or "Archive"
   genre     String
   sortOrder Int      @default(0)
   title     String
@@ -87,7 +88,7 @@ model BookRecommendation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([genre, sortOrder])
+  @@index([category, genre, sortOrder])
 }
 
 // Auth.js (next-auth v5) schema, standard shape per @auth/prisma-adapter —
@@ -162,4 +163,16 @@ model VerificationToken {
   createdAt  DateTime @default(now())
 
   @@unique([identifier, token])
+}
+
+model GalleryItem {
+  id          String   @id @default(cuid())
+  sortOrder   Int      @default(0)
+  title       String
+  description String?
+  imageUrl    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
 }

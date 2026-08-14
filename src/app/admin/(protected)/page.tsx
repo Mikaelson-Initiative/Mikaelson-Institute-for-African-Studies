@@ -12,13 +12,25 @@ export const metadata: Metadata = {
 export const revalidate = 0;
 
 export default async function AdminPage() {
-  const [contactMessages, submissions, applications] = await Promise.all([
+  const [
+    contactMessages,
+    submissions,
+    applications,
+    teamMembers,
+    partners,
+    books,
+    galleryItems,
+  ] = await Promise.all([
     prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.submission.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.cohortApplication.findMany({
       orderBy: { createdAt: "desc" },
       include: { user: { select: { name: true, email: true } } },
     }),
+    prisma.teamMember.findMany({ orderBy: [{ category: "asc" }, { sortOrder: "asc" }] }),
+    prisma.partner.findMany({ orderBy: { sortOrder: "asc" } }),
+    prisma.bookRecommendation.findMany({ orderBy: [{ genre: "asc" }, { sortOrder: "asc" }] }),
+    prisma.galleryItem.findMany({ orderBy: { sortOrder: "asc" } }),
   ]);
 
   return (
@@ -26,6 +38,10 @@ export default async function AdminPage() {
       contactMessages={contactMessages}
       submissions={submissions}
       applications={applications}
+      teamMembers={teamMembers}
+      partners={partners}
+      books={books}
+      galleryItems={galleryItems}
     />
   );
 }
