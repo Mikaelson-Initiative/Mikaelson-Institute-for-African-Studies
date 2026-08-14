@@ -40,8 +40,8 @@ export default function HomePage() {
             </StaggerItem>
             <StaggerItem>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-                <Button href="/submit" variant="primary">
-                  Submit a Paper
+                <Button href="/ubuntu" variant="primary">
+                  Join Ubuntu
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </Button>
                 <Button href="/library" variant="ghost-inverse">

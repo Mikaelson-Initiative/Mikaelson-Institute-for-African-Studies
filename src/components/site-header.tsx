@@ -44,7 +44,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden lg:block">
-          <Button href="/submit">Submit a Paper</Button>
+          <Button href="/partners">Partner with us</Button>
         </div>
 
         <button
@@ -107,8 +107,8 @@ export function SiteHeader() {
               );
             })}
             <li className="py-3">
-              <Button href="/submit" className="w-full" onClick={() => setMenuOpen(false)}>
-                Submit a Paper
+              <Button href="/partners" className="w-full" onClick={() => setMenuOpen(false)}>
+                Partner with us
               </Button>
             </li>
           </ul>
