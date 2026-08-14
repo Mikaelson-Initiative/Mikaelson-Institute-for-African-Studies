@@ -1,34 +1,96 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { signIn, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 
-type Step = "email" | "code" | "name" | "q1" | "q2" | "success" | "login" | "forgot_password";
-type FlowType = "signup" | "login" | "reset";
+type Step = "email" | "code" | "name" | "q1" | "q2" | "about" | "motivation" | "success" | "login" | "already_applied";
+type FlowType = "signup" | "login";
+
+async function decideNextStep(): Promise<Step> {
+  const response = await fetch("/api/cohort-application");
+  if (!response.ok) return "email";
+  const data = (await response.json()) as { hasApplication: boolean; name: string | null };
+  if (data.hasApplication) return "already_applied";
+  return data.name ? "q1" : "name";
+}
 
 export default function SignupPage() {
+  const { data: session, status } = useSession();
   const [step, setStep] = useState<Step>("email");
   const [flowType, setFlowType] = useState<FlowType>("signup");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
-  
-  // Data collection state
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Application data
   const [name, setName] = useState("");
-  const [firstTime, setFirstTime] = useState<string | null>(null);
+  const [firstTimeStudying, setFirstTimeStudying] = useState<string | null>(null);
   const [primaryGoal, setPrimaryGoal] = useState<string | null>(null);
+  const [about, setAbout] = useState("");
+  const [motivation, setMotivation] = useState("");
+
+  // Google sign-in is a full-page redirect back to /signup — once the
+  // session lands, decide whether this is a first-time applicant (skip
+  // straight to the "about" question, no name step, since Google already
+  // gives us a real name) or a returning member.
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    decideNextStep().then(setStep);
+  }, [status]);
+
+  const requestCode = async (nextFlowType: FlowType) => {
+    setError(null);
+    setPending(true);
+    setFlowType(nextFlowType);
+    try {
+      const response = await fetch("/api/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        setError(body?.message ?? "Couldn't send a code — try again.");
+        return;
+      }
+      setStep("code");
+    } catch {
+      setError("Couldn't send a code — check your connection and try again.");
+    } finally {
+      setPending(false);
+    }
+  };
 
   const handleSubmitEmail = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) setStep("code");
+    if (email) requestCode("signup");
   };
 
-  const handleVerifyCode = (e: React.FormEvent) => {
+  const handleSubmitLoginEmail = (e: React.FormEvent) => {
     e.preventDefault();
-    if (code.length === 6) setStep("name");
+    if (email) requestCode("login");
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 6) return;
+    setError(null);
+    setPending(true);
+    try {
+      const result = await signIn("email-code", { email, code, redirect: false });
+      if (!result || result.error) {
+        setError("That code is incorrect or expired.");
+        return;
+      }
+      setStep(await decideNextStep());
+    } finally {
+      setPending(false);
+    }
   };
 
   const handleSubmitName = (e: React.FormEvent) => {
@@ -37,13 +99,39 @@ export default function SignupPage() {
   };
 
   const handleQ1 = (answer: string) => {
-    setFirstTime(answer);
+    setFirstTimeStudying(answer);
     setStep("q2");
   };
 
   const handleQ2 = (answer: string) => {
     setPrimaryGoal(answer);
-    setStep("success");
+    setStep("about");
+  };
+
+  const handleSubmitAbout = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (about.trim().length >= 20) setStep("motivation");
+  };
+
+  const handleSubmitApplication = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (motivation.trim().length < 20 || !firstTimeStudying || !primaryGoal) return;
+    setError(null);
+    setPending(true);
+    try {
+      const response = await fetch("/api/cohort-application", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name || undefined, firstTimeStudying, primaryGoal, about, motivation }),
+      });
+      if (!response.ok) {
+        setError("Couldn't submit your application — try again.");
+        return;
+      }
+      setStep("success");
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -57,8 +145,18 @@ export default function SignupPage() {
     >
       {/* Sign In Content Container */}
       <div className="relative w-full max-w-sm px-4">
-        <AnimatePresence mode="wait">
-          
+        {/* Deliberately no mode="wait" — every step transition here is
+            triggered from an async handler (after an awaited fetch/signIn
+            call), not synchronously inside the click handler. With
+            mode="wait", AnimatePresence waits on the exiting child's
+            animation-complete callback before mounting the next step; that
+            callback reliably never fired for these async-triggered
+            transitions, permanently stalling the flow (confirmed via React
+            fiber inspection: state updated correctly, DOM never did).
+            Steps briefly cross-fade instead of strictly sequencing, which is
+            an acceptable tradeoff for a flow that actually completes. */}
+        <AnimatePresence>
+
           {/* STEP 1: EMAIL */}
           {step === "email" && (
             <motion.div
@@ -75,6 +173,7 @@ export default function SignupPage() {
               </div>
               <button
                 type="button"
+                onClick={() => signIn("google", { redirectTo: "/signup" })}
                 className="flex w-full items-center justify-center gap-3 rounded-full border border-ink/20 bg-white px-4 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-black/5 focus:ring-2 focus:ring-teal focus:outline-none"
               >
                 <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true">
@@ -104,19 +203,21 @@ export default function SignupPage() {
                     required
                     className="w-full rounded-full border border-teal-deep/20 bg-white py-3.5 pl-5 pr-14 text-sm text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
                   />
-                  <button 
-                    type="submit" 
-                    aria-label="Send sign-in link" 
-                    className={`absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-teal-deep text-white transition-all duration-300 hover:bg-teal focus:ring-2 focus:ring-teal-deep focus:outline-none ${email.includes('@') ? 'shadow-[0_0_15px_rgba(46,75,70,0.5)]' : ''}`}
+                  <button
+                    type="submit"
+                    aria-label="Send sign-in code"
+                    disabled={pending}
+                    className={`absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-teal-deep text-white transition-all duration-300 hover:bg-teal focus:ring-2 focus:ring-teal-deep focus:outline-none disabled:opacity-50 ${email.includes('@') ? 'shadow-[0_0_15px_rgba(46,75,70,0.5)]' : ''}`}
                   >
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </button>
                 </div>
+                {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
               </form>
 
               <div className="mt-8 text-center">
                 <span className="text-sm text-ink-muted">Already have an account? </span>
-                <button type="button" onClick={() => { setStep("login"); setFlowType("login"); }} className="text-sm font-semibold text-teal-deep hover:underline focus:outline-none">
+                <button type="button" onClick={() => { setError(null); setStep("login"); setFlowType("login"); }} className="text-sm font-semibold text-teal-deep hover:underline focus:outline-none">
                   Log in
                 </button>
               </div>
@@ -137,9 +238,12 @@ export default function SignupPage() {
                 <h2 className="font-display text-4xl font-medium tracking-tight text-ink sm:text-5xl">
                   Welcome<br />back.
                 </h2>
+                <p className="mt-4 text-base text-ink-muted">
+                  We&apos;ll email you a sign-in code — no password needed.
+                </p>
               </div>
-              
-              <form className="mt-4 w-full" noValidate onSubmit={(e) => { e.preventDefault(); setFlowType("login"); setStep("success"); }}>
+
+              <form className="mt-4 w-full" noValidate onSubmit={handleSubmitLoginEmail}>
                 <div className="flex flex-col gap-4">
                   <input
                     type="email"
@@ -149,83 +253,27 @@ export default function SignupPage() {
                     required
                     className="w-full rounded-full border border-teal-deep/20 bg-white py-3.5 px-5 text-sm text-center text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
                   />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    required
-                    className="w-full rounded-full border border-teal-deep/20 bg-white py-3.5 px-5 text-sm text-center text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
-                  />
-                  <div className="flex justify-end px-2">
-                    <button type="button" onClick={() => setStep("forgot_password")} className="text-xs font-medium text-ink-muted hover:text-teal-deep transition-colors focus:outline-none">
-                      Forgot password?
-                    </button>
-                  </div>
-                  <Button 
-                    type="submit" 
-                    disabled={!email || !password}
-                    className={`mt-2 w-full ${email && password ? 'shadow-[0_0_20px_rgba(46,75,70,0.6)]' : ''}`}
+                  <Button
+                    type="submit"
+                    disabled={!email.includes('@') || pending}
+                    className={`mt-2 w-full ${email.includes('@') ? 'shadow-[0_0_20px_rgba(46,75,70,0.6)]' : ''}`}
                   >
-                    Log In
+                    Send Code
                   </Button>
                 </div>
+                {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
               </form>
 
               <div className="mt-8 text-center">
                 <span className="text-sm text-ink-muted">Don&apos;t have an account? </span>
-                <button type="button" onClick={() => { setStep("email"); setFlowType("signup"); }} className="text-sm font-semibold text-teal-deep hover:underline focus:outline-none">
+                <button type="button" onClick={() => { setError(null); setStep("email"); setFlowType("signup"); }} className="text-sm font-semibold text-teal-deep hover:underline focus:outline-none">
                   Sign up
                 </button>
               </div>
             </motion.div>
           )}
 
-          {/* STEP: FORGOT PASSWORD */}
-          {step === "forgot_password" && (
-            <motion.div
-              key="step-forgot"
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col text-center items-center"
-            >
-              <button onClick={() => setStep("login")} className="mb-4 rounded-full p-2 text-ink/40 transition-colors hover:bg-black/5 hover:text-ink" aria-label="Go back">
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-              <div className="mb-8">
-                <h2 className="font-display text-4xl font-medium tracking-tight text-ink">
-                  Reset Password
-                </h2>
-                <p className="mt-4 text-base text-ink-muted">
-                  Enter your email and we&apos;ll send you a reset link.
-                </p>
-              </div>
-              
-              <form className="mt-2 w-full" noValidate onSubmit={(e) => { e.preventDefault(); setFlowType("reset"); setStep("success"); }}>
-                <div className="flex flex-col gap-4">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email address"
-                    required
-                    className="w-full rounded-full border border-teal-deep/20 bg-white py-3.5 px-5 text-sm text-center text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
-                  />
-                  <Button 
-                    type="submit" 
-                    disabled={!email.includes('@')}
-                    className={`mt-4 w-full ${email.includes('@') ? 'shadow-[0_0_20px_rgba(46,75,70,0.6)]' : ''}`}
-                  >
-                    Send Reset Link
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          )}
-
-          {/* STEP 2: CODE VERIFICATION */}
+          {/* STEP: CODE VERIFICATION */}
           {step === "code" && (
             <motion.div
               key="step-code"
@@ -235,7 +283,7 @@ export default function SignupPage() {
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col text-center items-center"
             >
-              <button onClick={() => setStep("email")} className="mb-4 rounded-full p-2 text-ink/40 transition-colors hover:bg-black/5 hover:text-ink" aria-label="Go back">
+              <button onClick={() => { setError(null); setStep(flowType === "login" ? "login" : "email"); }} className="mb-4 rounded-full p-2 text-ink/40 transition-colors hover:bg-black/5 hover:text-ink" aria-label="Go back">
                 <ArrowLeft className="h-5 w-5" />
               </button>
               <div className="mb-8">
@@ -258,18 +306,19 @@ export default function SignupPage() {
                   onChange={(e) => setCode(e.target.value)}
                   className="w-full rounded-2xl border border-teal-deep/20 bg-white px-5 py-4 text-center text-3xl tracking-widest text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-2 focus:ring-teal-deep focus:outline-none"
                 />
-                <Button 
-                  type="submit" 
-                  disabled={code.length !== 6} 
+                <Button
+                  type="submit"
+                  disabled={code.length !== 6 || pending}
                   className={`mt-6 w-full ${code.length === 6 ? 'shadow-[0_0_20px_rgba(46,75,70,0.6)]' : ''}`}
                 >
                   Verify Code
                 </Button>
+                {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
               </form>
             </motion.div>
           )}
 
-          {/* STEP 3: NAME */}
+          {/* STEP: NAME (email-code signups only — Google already provides a name) */}
           {step === "name" && (
             <motion.div
               key="step-name"
@@ -279,11 +328,8 @@ export default function SignupPage() {
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col text-center items-center"
             >
-              <button onClick={() => setStep("code")} className="mb-4 rounded-full p-2 text-ink/40 transition-colors hover:bg-black/5 hover:text-ink" aria-label="Go back">
-                <ArrowLeft className="h-5 w-5" />
-              </button>
               <div className="mb-8">
-                <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-[#a0948e]">Question 1 of 3</span>
+                <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-[#a0948e]">Cohort 01 Application</span>
                 <h2 className="font-display text-4xl font-medium tracking-tight text-ink leading-tight">
                   What is your name?
                 </h2>
@@ -301,10 +347,10 @@ export default function SignupPage() {
                     required
                     className="w-full rounded-full border border-teal-deep/20 bg-white py-3.5 pl-5 pr-14 text-sm text-center text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
                   />
-                  <button 
-                    type="submit" 
-                    aria-label="Continue" 
-                    disabled={!name.trim()} 
+                  <button
+                    type="submit"
+                    aria-label="Continue"
+                    disabled={!name.trim()}
                     className={`absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-teal-deep text-white transition-all duration-300 hover:bg-teal focus:ring-2 focus:ring-teal-deep focus:outline-none disabled:opacity-50 ${name.trim().length > 2 ? 'shadow-[0_0_15px_rgba(46,75,70,0.5)]' : ''}`}
                   >
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -314,7 +360,7 @@ export default function SignupPage() {
             </motion.div>
           )}
 
-          {/* STEP 4: QUESTION 1 */}
+          {/* STEP: Q1 — fixed-choice, quick filter */}
           {step === "q1" && (
             <motion.div
               key="step-q1"
@@ -328,7 +374,7 @@ export default function SignupPage() {
                 <ArrowLeft className="h-5 w-5" />
               </button>
               <div className="mb-8">
-                <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-[#a0948e]">Question 2 of 3</span>
+                <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-[#a0948e]">Question 1 of 4</span>
                 <h2 className="font-display text-3xl font-medium tracking-tight text-ink leading-tight">
                   Is this your first time studying African history in a formal setting?
                 </h2>
@@ -347,7 +393,7 @@ export default function SignupPage() {
             </motion.div>
           )}
 
-          {/* STEP 5: QUESTION 2 */}
+          {/* STEP: Q2 — fixed-choice, quick filter */}
           {step === "q2" && (
             <motion.div
               key="step-q2"
@@ -361,7 +407,7 @@ export default function SignupPage() {
                 <ArrowLeft className="h-5 w-5" />
               </button>
               <div className="mb-8">
-                <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-[#a0948e]">Question 3 of 3</span>
+                <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-[#a0948e]">Question 2 of 4</span>
                 <h2 className="font-display text-3xl font-medium tracking-tight text-ink leading-tight">
                   What is your primary goal for joining this cohort?
                 </h2>
@@ -383,7 +429,118 @@ export default function SignupPage() {
             </motion.div>
           )}
 
-          {/* STEP 6: SUCCESS */}
+          {/* STEP: ABOUT — open-ended, added alongside the fixed-choice questions above */}
+          {step === "about" && (
+            <motion.div
+              key="step-about"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col text-center items-center"
+            >
+              <button onClick={() => setStep("q2")} className="mb-4 rounded-full p-2 text-ink/40 transition-colors hover:bg-black/5 hover:text-ink" aria-label="Go back">
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div className="mb-8">
+                <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-[#a0948e]">Question 3 of 4</span>
+                <h2 className="font-display text-3xl font-medium tracking-tight text-ink leading-tight">
+                  Tell us a bit about yourself.
+                </h2>
+                <p className="mt-3 text-sm text-ink-muted">
+                  Background, what you do, whatever feels relevant.
+                </p>
+              </div>
+              <form className="mt-2 w-full" noValidate onSubmit={handleSubmitAbout}>
+                <label htmlFor="about" className="sr-only">About you</label>
+                <textarea
+                  id="about"
+                  value={about}
+                  onChange={(e) => setAbout(e.target.value)}
+                  placeholder="I'm a..."
+                  rows={5}
+                  className="w-full rounded-2xl border border-teal-deep/20 bg-white px-5 py-4 text-sm text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
+                />
+                <Button
+                  type="submit"
+                  disabled={about.trim().length < 20}
+                  className={`mt-6 w-full ${about.trim().length >= 20 ? 'shadow-[0_0_20px_rgba(46,75,70,0.6)]' : ''}`}
+                >
+                  Continue
+                </Button>
+              </form>
+            </motion.div>
+          )}
+
+          {/* STEP: MOTIVATION — final question, submits the application */}
+          {step === "motivation" && (
+            <motion.div
+              key="step-motivation"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col text-center items-center"
+            >
+              <button onClick={() => setStep("about")} className="mb-4 rounded-full p-2 text-ink/40 transition-colors hover:bg-black/5 hover:text-ink" aria-label="Go back">
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div className="mb-8">
+                <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-[#a0948e]">Question 4 of 4</span>
+                <h2 className="font-display text-3xl font-medium tracking-tight text-ink leading-tight">
+                  Why African history, and why now?
+                </h2>
+                <p className="mt-3 text-sm text-ink-muted">
+                  What draws you to this cohort, and what do you hope to get out of it?
+                </p>
+              </div>
+              <form className="mt-2 w-full" noValidate onSubmit={handleSubmitApplication}>
+                <label htmlFor="motivation" className="sr-only">Motivation</label>
+                <textarea
+                  id="motivation"
+                  value={motivation}
+                  onChange={(e) => setMotivation(e.target.value)}
+                  placeholder="I'm interested because..."
+                  rows={5}
+                  className="w-full rounded-2xl border border-teal-deep/20 bg-white px-5 py-4 text-sm text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
+                />
+                <Button
+                  type="submit"
+                  disabled={motivation.trim().length < 20 || pending}
+                  className={`mt-6 w-full ${motivation.trim().length >= 20 ? 'shadow-[0_0_20px_rgba(46,75,70,0.6)]' : ''}`}
+                >
+                  Submit Application
+                </Button>
+                {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
+              </form>
+            </motion.div>
+          )}
+
+          {/* STEP: ALREADY APPLIED — returning member who's already submitted */}
+          {step === "already_applied" && (
+            <motion.div
+              key="step-already-applied"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center text-center"
+            >
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-teal/10">
+                <CheckCircle2 className="h-10 w-10 text-teal-deep" />
+              </div>
+              <h2 className="font-display text-4xl font-medium tracking-tight text-ink">
+                Welcome back.
+              </h2>
+              <p className="mt-4 text-base text-ink-muted">
+                You&apos;ve already applied to Cohort 01 — we&apos;ll be in touch.
+              </p>
+              <Link href="/" className="mt-8">
+                <Button>Return Home</Button>
+              </Link>
+            </motion.div>
+          )}
+
+          {/* STEP: SUCCESS */}
           {step === "success" && (
             <motion.div
               key="step-success"
@@ -396,12 +553,10 @@ export default function SignupPage() {
                 <CheckCircle2 className="h-10 w-10 text-teal-deep" />
               </div>
               <h2 className="font-display text-4xl font-medium tracking-tight text-ink">
-                {flowType === "signup" ? `Welcome, ${name ? name.split(' ')[0] : 'friend'}.` : 
-                 flowType === "login" ? "Welcome back." : "Check your inbox."}
+                {`Thank you, ${(name || session?.user?.name || 'friend').split(' ')[0]}.`}
               </h2>
               <p className="mt-4 text-base text-ink-muted">
-                {flowType === "signup" ? "Your application has been received. We're thrilled to have you join our community." :
-                 flowType === "login" ? "You have successfully logged in to your account." : "We've sent a secure password reset link to your email."}
+                Your Cohort 01 application has been received. We&apos;ll email you once it&apos;s been reviewed.
               </p>
               <Link
                 href="/"
