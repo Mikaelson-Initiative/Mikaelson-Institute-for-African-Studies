@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Baloo_2, IBM_Plex_Mono, Inter } from "next/font/google";
+import { SessionProvider } from "next-auth/react";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -46,18 +47,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${baloo.variable} ${inter.variable} ${ledgerMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-beige text-ink">
-        <a
-          href="#main-content"
-          className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-50 focus-visible:rounded focus-visible:bg-paper focus-visible:px-4 focus-visible:py-2 focus-visible:text-ink"
-        >
-          Skip to main content
-        </a>
-        <CursorFollower />
-        <SiteHeader />
-        <main id="main-content" className="flex-1">
-          {children}
-        </main>
-        <SiteFooter />
+        <SessionProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-4 focus-visible:left-4 focus-visible:z-50 focus-visible:rounded focus-visible:bg-paper focus-visible:px-4 focus-visible:py-2 focus-visible:text-ink"
+          >
+            Skip to main content
+          </a>
+          <CursorFollower />
+          <SiteHeader />
+          <main id="main-content" className="flex-1">
+            {children}
+          </main>
+          <SiteFooter />
+        </SessionProvider>
       </body>
     </html>
   );

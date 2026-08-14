@@ -40,6 +40,7 @@ model ContactMessage {
   name      String
   email     String
   message   String
+  resolved  Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 
@@ -87,4 +88,78 @@ model BookRecommendation {
   updatedAt DateTime @updatedAt
 
   @@index([genre, sortOrder])
+}
+
+// Auth.js (next-auth v5) schema, standard shape per @auth/prisma-adapter —
+// see src/auth.ts. Backs the /signup Google sign-in flow. This is the
+// registered-account model the Submission schema comment above deferred to
+// "Phase 2/3's editor dashboard" — not yet wired to Submission itself.
+model User {
+  id                String             @id @default(cuid())
+  name              String?
+  email             String?            @unique
+  emailVerified     DateTime?
+  image             String?
+  accounts          Account[]
+  sessions          Session[]
+  cohortApplication CohortApplication?
+}
+
+// A Cohort 01 application, not just a profile — see /signup's post-signin
+// questions. One per user, reviewed via /admin. Confirmation email to the
+// applicant + notification to staff both fire on creation (src/lib/email.ts).
+//
+// firstTimeStudying/primaryGoal are the original fixed-choice questions;
+// about/motivation were added alongside them (not a replacement) so
+// reviewers get both a quick filter and real, open-ended context.
+model CohortApplication {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  firstTimeStudying String
+  primaryGoal       String
+  about             String
+  motivation        String
+  reviewed          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+  // Not part of Auth.js's standard shape — added so send-code can enforce a
+  // per-email cooldown (see src/lib/otp.ts) without a separate rate-limit
+  // store, given the Resend free-tier daily cap this is guarding.
+  createdAt  DateTime @default(now())
+
+  @@unique([identifier, token])
 }
