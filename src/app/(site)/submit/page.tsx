@@ -1,6 +1,18 @@
 import type { Metadata } from "next";
-import { Landmark, Scale, Palette, BookOpen, ArrowRight, Microscope } from "lucide-react";
+import Image from "next/image";
+import {
+  Landmark,
+  Scale,
+  Palette,
+  BookOpen,
+  Microscope,
+  Send,
+  Search,
+  MessageSquareText,
+  BadgeCheck,
+} from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
+import { StaggerGroup, StaggerItem } from "@/components/motion/stagger";
 import { SubmitPaperForm } from "@/components/forms/submit-paper-form";
 import { SectionLabel } from "@/components/section-label";
 import { focusAreas } from "@/lib/focus-areas";
@@ -32,8 +44,7 @@ const qualities = [
   },
   {
     word: "Rigorous.",
-    detail:
-      "It takes sources, methodology, and evidence seriously.",
+    detail: "It takes sources, methodology, and evidence seriously.",
   },
   {
     word: "Relevant.",
@@ -41,13 +52,34 @@ const qualities = [
   },
   {
     word: "Thoughtful.",
-    detail:
-      "It recognizes complexity rather than reducing Africa to simple narratives.",
+    detail: "It recognizes complexity rather than reducing Africa to simple narratives.",
   },
   {
     word: "Accessible.",
-    detail:
-      "Academic clarity is a virtue. Necessary difficulty only.",
+    detail: "Academic clarity is a virtue. Necessary difficulty only.",
+  },
+];
+
+const steps = [
+  {
+    icon: Send,
+    title: "Submit",
+    detail: "Send your paper — no account or fee required.",
+  },
+  {
+    icon: Search,
+    title: "Review",
+    detail: "Editorial, peer, or expert review, depending on the programme.",
+  },
+  {
+    icon: MessageSquareText,
+    title: "Revise",
+    detail: "You'll hear back by email at each stage, revisions included.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Publish",
+    detail: "Accepted work joins the Institute's library.",
   },
 ];
 
@@ -55,8 +87,20 @@ export default function SubmitPage() {
   return (
     <div className="bg-beige">
       {/* ── Page header ──────────────────────────────────────────────── */}
-      <div className="bg-teal-deep text-paper">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+      <div className="relative overflow-hidden bg-teal-deep text-paper">
+        <Image
+          src="/images/submit/hero.png"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-35"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-t from-teal-deep via-teal-deep/85 to-teal-deep/60"
+        />
+        <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
           <Reveal>
             <p className="font-mono-ledger text-xs tracking-widest text-turquoise uppercase">
               Submissions
@@ -69,6 +113,28 @@ export default function SubmitPage() {
               emerging academics to contribute original work to African
               scholarship.
             </p>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <dl className="mt-10 grid max-w-2xl grid-cols-3 gap-6 border-t border-paper/15 pt-6">
+              <div>
+                <dt className="font-mono-ledger text-xs tracking-widest text-turquoise uppercase">
+                  Focus areas
+                </dt>
+                <dd className="mt-1 font-display text-2xl font-semibold">{focusAreas.length}</dd>
+              </div>
+              <div>
+                <dt className="font-mono-ledger text-xs tracking-widest text-turquoise uppercase">
+                  Submission fee
+                </dt>
+                <dd className="mt-1 font-display text-2xl font-semibold">None</dd>
+              </div>
+              <div>
+                <dt className="font-mono-ledger text-xs tracking-widest text-turquoise uppercase">
+                  Account required
+                </dt>
+                <dd className="mt-1 font-display text-2xl font-semibold">No</dd>
+              </div>
+            </dl>
           </Reveal>
         </div>
       </div>
@@ -87,42 +153,43 @@ export default function SubmitPage() {
                 We accept work across all of the Institute&rsquo;s research
                 areas. Interdisciplinary work is encouraged.
               </p>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <StaggerGroup
+                className="mt-6 grid gap-4 sm:grid-cols-2"
+                onViewport
+                staggerChildren={0.06}
+              >
                 {focusAreas.map((area) => {
                   const Icon = iconMap[area.icon];
                   return (
-                    <div
-                      key={area.slug}
-                      className="flex gap-3 rounded-lg border border-ink/10 bg-paper p-4"
-                    >
-                      <Icon
-                        aria-hidden="true"
-                        className="mt-0.5 h-5 w-5 shrink-0 text-teal-deep"
-                      />
-                      <div>
-                        <p className="text-sm font-semibold text-ink">
-                          {area.title}
-                        </p>
-                        <p className="mt-0.5 text-xs text-ink-muted">
-                          {area.summary}
-                        </p>
+                    <StaggerItem key={area.slug}>
+                      <div className="group flex h-full gap-3 rounded-lg border border-ink/10 bg-paper p-4 transition-colors duration-200 hover:border-teal-deep/30 hover:bg-white">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-deep/10 text-teal-deep transition-colors duration-200 group-hover:bg-teal-deep group-hover:text-white">
+                          <Icon aria-hidden="true" className="h-4 w-4" />
+                        </span>
+                        <div>
+                          <p className="text-sm font-semibold text-ink">
+                            {area.title}
+                          </p>
+                          <p className="mt-0.5 text-xs text-ink-muted">
+                            {area.summary}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    </StaggerItem>
                   );
                 })}
-              </div>
+              </StaggerGroup>
             </Reveal>
 
             {/* What we look for */}
             <Reveal>
               <SectionLabel>What We Look For</SectionLabel>
               <div className="mt-6 space-y-5">
-                {qualities.map((q) => (
-                  <div key={q.word} className="flex gap-3">
-                    <ArrowRight
-                      aria-hidden="true"
-                      className="mt-0.5 h-4 w-4 shrink-0 text-teal-deep"
-                    />
+                {qualities.map((q, i) => (
+                  <div key={q.word} className="flex gap-4">
+                    <span className="font-mono-ledger mt-0.5 text-xs text-teal-deep/60">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
                     <p className="text-base text-ink">
                       <span className="font-semibold">{q.word}</span>{" "}
                       <span className="text-ink-muted">{q.detail}</span>
@@ -132,28 +199,36 @@ export default function SubmitPage() {
               </div>
             </Reveal>
 
-            {/* Review note */}
+            {/* Review process */}
             <Reveal>
               <SectionLabel>Review Process</SectionLabel>
-              <p className="mt-3 text-base text-ink-muted">
-                Depending on the programme, submissions may undergo editorial,
-                peer, or expert review. You will be notified by email at each
-                stage. No account is required — you will receive a tracking link
-                immediately after submission.
-              </p>
-              <p className="mt-3 text-sm text-ink-muted">
-                Before submitting, please read the{" "}
-                <a
-                  href="/terms"
-                  className="text-teal-deep underline"
-                >
+              <div className="relative mt-8 grid gap-8 sm:grid-cols-4 sm:gap-4">
+                <div
+                  aria-hidden="true"
+                  className="absolute top-5 right-0 left-0 hidden h-px bg-ink/10 sm:block"
+                />
+                {steps.map((step) => {
+                  const Icon = step.icon;
+                  return (
+                    <div key={step.title} className="relative">
+                      <span className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-beige text-teal-deep">
+                        <Icon aria-hidden="true" className="h-4 w-4" />
+                      </span>
+                      <p className="mt-3 text-sm font-semibold text-ink">{step.title}</p>
+                      <p className="mt-1 text-xs text-ink-muted">{step.detail}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-6 text-sm text-ink-muted">
+                No account is required — you will receive a tracking link
+                immediately after submission. Before submitting, please read
+                the{" "}
+                <a href="/terms" className="text-teal-deep underline">
                   Terms of Submission
                 </a>{" "}
                 and{" "}
-                <a
-                  href="/call-for-papers"
-                  className="text-teal-deep underline"
-                >
+                <a href="/call-for-papers" className="text-teal-deep underline">
                   Call for Papers
                 </a>
                 .
