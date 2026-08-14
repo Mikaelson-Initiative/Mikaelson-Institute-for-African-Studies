@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotion } from "framer-motion";
-import { BookOpen, ChevronDown, ChevronUp, Landmark, Palette, Scale } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronUp, Landmark, Palette, Scale, Microscope } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { TiltCard } from "@/components/motion/tilt-card";
 import type { FocusArea } from "@/lib/focus-areas";
@@ -11,6 +11,7 @@ const icons = {
   scale: Scale,
   palette: Palette,
   "book-open": BookOpen,
+  microscope: Microscope,
 } as const;
 
 const PAGE_HEIGHT_CLASS = "h-[26rem] sm:h-[24rem]";

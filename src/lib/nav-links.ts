@@ -18,6 +18,7 @@ export const navGroups: NavGroup[] = [
       { href: "/call-for-papers", label: "Call for Papers" },
       { href: "/submit", label: "Submit a Paper" },
       { href: "/ubuntu", label: "Ubuntu" },
+      { href: "/stem-and-metaphysics", label: "STEM & Metaphysics" },
     ],
   },
   {

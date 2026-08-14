@@ -8,7 +8,7 @@ export type FocusArea = {
   slug: string;
   title: string;
   summary: string;
-  icon: "landmark" | "scale" | "palette" | "book-open";
+  icon: "landmark" | "scale" | "palette" | "book-open" | "microscope";
 };
 
 export const focusAreas: FocusArea[] = [
@@ -39,5 +39,12 @@ export const focusAreas: FocusArea[] = [
     summary:
       "Indigenous and world belief systems, philosophical traditions, and rigorous first-person research into lived and transcendent experience.",
     icon: "book-open",
+  },
+  {
+    slug: "stem-metaphysics",
+    title: "STEM & Metaphysics",
+    summary:
+      "Bridging technological advancement with deep philosophical inquiry, applying rigorous scientific methodologies to modern African challenges.",
+    icon: "microscope",
   },
 ];
