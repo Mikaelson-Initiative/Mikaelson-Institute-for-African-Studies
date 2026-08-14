@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { ResilientImage } from "@/components/ui/resilient-image";
 
 export type ScrollItem = {
   title: string;
@@ -73,10 +74,12 @@ function DepthCard({ item }: { item: ScrollItem }) {
         <div className="w-full md:w-1/2 flex items-center justify-center md:justify-start">
           <div className="relative w-full max-w-[400px] aspect-square rounded-[40px] overflow-hidden flex-shrink-0 bg-neutral-100 shadow-xl">
             {item.image && (
-              <img
+              <ResilientImage
                 src={item.image}
                 alt={item.title}
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 768px) 100vw, 400px"
+                className="object-cover"
               />
             )}
           </div>

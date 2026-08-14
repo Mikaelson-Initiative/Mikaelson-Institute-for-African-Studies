@@ -63,7 +63,7 @@ export default async function BooksPage() {
     cards: books
       .filter((book) => book.genre === genre.id)
       .map((book) => ({
-        imgUrl: book.imgUrl,
+        imgUrl: book.imgUrl.replace("-L.jpg", "-M.jpg"),
         alt: book.title,
         linkUrl: book.linkUrl,
       })),

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
+import { ResilientImage } from "@/components/ui/resilient-image";
 
 export interface CardItem {
   imgUrl: string;
@@ -266,9 +267,13 @@ export default function SocialCards({ cards }: SocialCardsProps) {
         <div ref={containerRef} className="fan-layout flex relative justify-center items-center w-full max-w-[80rem]">
           {cards.map((card, index) => {
             const image = (
-              <div className="relative w-full h-full overflow-hidden">
-                <img src={card.imgUrl} loading="lazy" alt={card.alt || `Card ${index}`} className="absolute inset-0 w-full h-full object-cover z-10" />
-              </div>
+              <ResilientImage 
+                src={card.imgUrl} 
+                alt={card.alt || `Card ${index}`} 
+                fill
+                sizes="(max-width: 768px) 100vw, 300px"
+                className="absolute inset-0 w-full h-full object-cover z-10" 
+              />
             );
             return card.linkUrl ? (
               <a key={index} href={card.linkUrl} target={card.linkUrl.startsWith("http") ? "_blank" : "_self"} rel="noopener noreferrer" className="fan-card block cursor-pointer">{image}</a>

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, type useMotionValue } from "framer-motion";
+import { motion, MotionValue, useTransform, useMotionValue } from "framer-motion";
+import { ResilientImage } from "@/components/ui/resilient-image";
 
 // Tight spring for cursor-follow — buttery, no overshoot. Shared by any
 // kinetic list (team, partners, ...) that previews an image near the cursor.
@@ -35,8 +36,15 @@ export function FloatingImage({
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} draggable={false} className="h-full w-full object-cover" />
+      <div className="relative h-full w-full">
+        <ResilientImage
+          src={src}
+          alt={alt}
+          fill
+          sizes="256px"
+          className="object-cover pointer-events-none"
+        />
+      </div>
       {/* Vignette ring */}
       <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/20" />
     </motion.div>

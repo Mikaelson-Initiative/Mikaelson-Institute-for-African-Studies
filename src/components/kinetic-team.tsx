@@ -10,6 +10,7 @@ import {
 import { ArrowRight, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FloatingImage, cursorSpring } from "@/components/floating-image";
+import { ResilientImage } from "@/components/ui/resilient-image";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -120,12 +121,15 @@ function MemberRow({
               <p className="mb-2 font-mono-ledger text-xs uppercase tracking-widest text-ink-muted">
                 {member.role}
               </p>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={member.image}
-                alt={member.name}
-                className="h-56 w-full rounded-2xl object-cover shadow-lg"
-              />
+              <div className="relative h-56 w-full overflow-hidden rounded-2xl shadow-lg">
+                <ResilientImage
+                  src={member.image}
+                  alt={member.name}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 400px"
+                  className="object-cover"
+                />
+              </div>
             </div>
           </motion.div>
         )}
