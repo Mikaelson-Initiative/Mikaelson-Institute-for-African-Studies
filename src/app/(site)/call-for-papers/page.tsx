@@ -3,6 +3,7 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { PlaceholderNotice } from "@/components/placeholder-notice";
+import { ComingSoonNotice } from "@/components/coming-soon-notice";
 import { SectionLabel } from "@/components/section-label";
 
 export const metadata: Metadata = {
@@ -125,6 +126,15 @@ export default function CallForPapersPage() {
       />
 
       <div className="mx-auto max-w-3xl space-y-14 px-4 py-16 sm:px-6">
+
+        {/* Priority notice */}
+        <Reveal>
+          <ComingSoonNotice>
+            Our first priority right now is Ubuntu, the Institute&rsquo;s
+            cohort-based learning programme. A new call for papers will
+            follow once that is underway.
+          </ComingSoonNotice>
+        </Reveal>
 
         {/* Active call placeholder */}
         <Reveal>

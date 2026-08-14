@@ -15,6 +15,7 @@ import { Reveal } from "@/components/motion/reveal";
 import { StaggerGroup, StaggerItem } from "@/components/motion/stagger";
 import { SubmitPaperForm } from "@/components/forms/submit-paper-form";
 import { SectionLabel } from "@/components/section-label";
+import { ComingSoonNotice } from "@/components/coming-soon-notice";
 import { focusAreas } from "@/lib/focus-areas";
 
 export const metadata: Metadata = {
@@ -141,6 +142,15 @@ export default function SubmitPage() {
 
       {/* ── Two-column body ──────────────────────────────────────────── */}
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <Reveal className="mb-14">
+          <ComingSoonNotice>
+            Our first priority right now is Ubuntu, the Institute&rsquo;s
+            cohort-based learning programme. A formal call for papers will
+            follow once that is underway — the form below remains open if
+            you&rsquo;d like to submit ahead of it.
+          </ComingSoonNotice>
+        </Reveal>
+
         <div className="grid gap-16 lg:grid-cols-[1fr_480px] lg:gap-12 xl:gap-20">
 
           {/* Left — editorial context */}

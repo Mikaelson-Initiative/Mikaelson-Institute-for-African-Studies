@@ -9,14 +9,16 @@ export type NavGroup = {
 };
 
 // Three grouped dropdowns replace the old flat top-level links + single
-// About dropdown. Framework and Community were removed from here on
-// request — their pages still exist, just unlinked from navigation.
+// About dropdown. Community was removed from here on request — its page
+// still exists, just unlinked from navigation. Framework was reinstated
+// and Submit a Paper removed in its place: Ubuntu (cohort-based learning)
+// is the current priority, not paper submissions (2026-08-14).
 export const navGroups: NavGroup[] = [
   {
     label: "Research Community",
     links: [
       { href: "/call-for-papers", label: "Call for Papers" },
-      { href: "/submit", label: "Submit a Paper" },
+      { href: "/framework", label: "Framework" },
       { href: "/ubuntu", label: "Ubuntu" },
       { href: "/stem-and-metaphysics", label: "STEM & Metaphysics" },
     ],
@@ -41,6 +43,9 @@ export const navGroups: NavGroup[] = [
 
 export const footerNavLinks: NavLink[] = [
   ...navGroups.flatMap((group) => group.links),
+  // Submit a Paper was removed from the Research Community dropdown above
+  // (2026-08-14) but kept here — the footer link wasn't asked to change.
+  { href: "/submit", label: "Submit a Paper" },
   { href: "/library", label: "Library" },
   { href: "/contact", label: "Contact" },
   { href: "/privacy", label: "Privacy Policy" },
