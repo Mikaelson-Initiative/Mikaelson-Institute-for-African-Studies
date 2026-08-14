@@ -39,16 +39,39 @@ export async function POST(request: Request) {
     );
   }
 
-  const { name, firstTimeStudying, primaryGoal, about, motivation } = fields.data;
+  const {
+    name,
+    phoneNumber,
+    gender,
+    nationality,
+    stateOfOrigin,
+    additionalInfo,
+    firstTimeStudying,
+    primaryGoal,
+    about,
+    motivation,
+  } = fields.data;
 
   if (name) {
     await prisma.user.update({ where: { id: session.user.id }, data: { name } });
   }
 
+  const applicationData = {
+    phoneNumber,
+    gender,
+    nationality,
+    stateOfOrigin,
+    additionalInfo: additionalInfo || null,
+    firstTimeStudying,
+    primaryGoal,
+    about,
+    motivation,
+  };
+
   await prisma.cohortApplication.upsert({
     where: { userId: session.user.id },
-    update: { firstTimeStudying, primaryGoal, about, motivation },
-    create: { userId: session.user.id, firstTimeStudying, primaryGoal, about, motivation },
+    update: applicationData,
+    create: { userId: session.user.id, ...applicationData },
   });
 
   const applicantName = name ?? session.user.name ?? "there";
@@ -62,7 +85,7 @@ export async function POST(request: Request) {
   await sendEmail({
     to: notificationRecipient(),
     subject: `New Cohort 01 application: ${applicantName}`,
-    html: `<p><strong>${applicantName}</strong> (${session.user.email}) applied to Cohort 01.</p><p><strong>First time studying African history:</strong> ${firstTimeStudying}</p><p><strong>Primary goal:</strong> ${primaryGoal}</p><p><strong>About:</strong> ${about}</p><p><strong>Motivation:</strong> ${motivation}</p>`,
+    html: `<p><strong>${applicantName}</strong> (${session.user.email}) applied to Cohort 01.</p><p><strong>Phone:</strong> ${phoneNumber} · <strong>Gender:</strong> ${gender} · <strong>Nationality:</strong> ${nationality} · <strong>State of origin:</strong> ${stateOfOrigin}</p>${additionalInfo ? `<p><strong>Additional info:</strong> ${additionalInfo}</p>` : ""}<p><strong>First time studying African history:</strong> ${firstTimeStudying}</p><p><strong>Primary goal:</strong> ${primaryGoal}</p><p><strong>About:</strong> ${about}</p><p><strong>Motivation:</strong> ${motivation}</p>`,
   });
 
   return NextResponse.json({ ok: true }, { status: 201 });

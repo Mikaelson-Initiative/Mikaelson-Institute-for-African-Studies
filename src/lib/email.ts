@@ -27,7 +27,7 @@ export async function sendEmail(params: { to: string; subject: string; html: str
   }
 
   const { error } = await resend.emails.send({
-    from: FROM_EMAIL,
+    from: `Mikaelson Institute for African Studies <${FROM_EMAIL}>`,
     to: params.to,
     subject: params.subject,
     html: params.html,

@@ -7,15 +7,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import { signIn, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 
-type Step = "email" | "code" | "name" | "q1" | "q2" | "about" | "motivation" | "success" | "login" | "already_applied";
+type Step = "email" | "code" | "name" | "details" | "q1" | "q2" | "about" | "motivation" | "success" | "login" | "already_applied";
 type FlowType = "signup" | "login";
+
+const GENDER_CHOICES = [
+  { value: "female", label: "Female" },
+  { value: "male", label: "Male" },
+  { value: "non-binary", label: "Non-binary" },
+  { value: "prefer-not-to-say", label: "Prefer not to say" },
+];
 
 async function decideNextStep(): Promise<Step> {
   const response = await fetch("/api/cohort-application");
   if (!response.ok) return "email";
   const data = (await response.json()) as { hasApplication: boolean; name: string | null };
   if (data.hasApplication) return "already_applied";
-  return data.name ? "q1" : "name";
+  return data.name ? "details" : "name";
 }
 
 export default function SignupPage() {
@@ -29,6 +36,11 @@ export default function SignupPage() {
 
   // Application data
   const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [gender, setGender] = useState<string | null>(null);
+  const [nationality, setNationality] = useState("");
+  const [stateOfOrigin, setStateOfOrigin] = useState("");
+  const [additionalInfo, setAdditionalInfo] = useState("");
   const [firstTimeStudying, setFirstTimeStudying] = useState<string | null>(null);
   const [primaryGoal, setPrimaryGoal] = useState<string | null>(null);
   const [about, setAbout] = useState("");
@@ -55,12 +67,12 @@ export default function SignupPage() {
       });
       if (!response.ok) {
         const body = await response.json().catch(() => null);
-        setError(body?.message ?? "Couldn't send a code — try again.");
+        setError(body?.message ?? "Couldn't send a code, try again.");
         return;
       }
       setStep("code");
     } catch {
-      setError("Couldn't send a code — check your connection and try again.");
+      setError("Couldn't send a code, check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -95,7 +107,14 @@ export default function SignupPage() {
 
   const handleSubmitName = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim()) setStep("q1");
+    if (name.trim()) setStep("details");
+  };
+
+  const handleSubmitDetails = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (phoneNumber.trim() && gender && nationality.trim() && stateOfOrigin.trim()) {
+      setStep("q1");
+    }
   };
 
   const handleQ1 = (answer: string) => {
@@ -122,10 +141,21 @@ export default function SignupPage() {
       const response = await fetch("/api/cohort-application", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name || undefined, firstTimeStudying, primaryGoal, about, motivation }),
+        body: JSON.stringify({
+          name: name || undefined,
+          phoneNumber,
+          gender,
+          nationality,
+          stateOfOrigin,
+          additionalInfo: additionalInfo || undefined,
+          firstTimeStudying,
+          primaryGoal,
+          about,
+          motivation,
+        }),
       });
       if (!response.ok) {
-        setError("Couldn't submit your application — try again.");
+        setError("Couldn't submit your application, try again.");
         return;
       }
       setStep("success");
@@ -168,7 +198,7 @@ export default function SignupPage() {
             >
               <div className="mb-10 text-center">
                 <h2 className="font-display text-4xl font-medium tracking-tight text-ink sm:text-5xl">
-                  Start learning<br />today.
+                  Begin your journey<br />to African History.
                 </h2>
               </div>
               <button
@@ -239,7 +269,7 @@ export default function SignupPage() {
                   Welcome<br />back.
                 </h2>
                 <p className="mt-4 text-base text-ink-muted">
-                  We&apos;ll email you a sign-in code — no password needed.
+                  We&apos;ll email you a sign-in code, no password needed.
                 </p>
               </div>
 
@@ -360,6 +390,112 @@ export default function SignupPage() {
             </motion.div>
           )}
 
+          {/* STEP: DETAILS — single page collecting phone/gender/nationality/
+              state of origin/optional extra info, in one go rather than one
+              question per step like Q1/Q2/about/motivation below. */}
+          {step === "details" && (
+            <motion.div
+              key="step-details"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col text-center items-center"
+            >
+              <button onClick={() => setStep("name")} className="mb-4 rounded-full p-2 text-ink/40 transition-colors hover:bg-black/5 hover:text-ink" aria-label="Go back">
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div className="mb-8">
+                <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-[#a0948e]">Cohort 01 Application</span>
+                <h2 className="font-display text-3xl font-medium tracking-tight text-ink leading-tight">
+                  A little more about you.
+                </h2>
+              </div>
+              <form className="w-full space-y-4 text-left" noValidate onSubmit={handleSubmitDetails}>
+                <div>
+                  <label htmlFor="phone-number" className="sr-only">Phone number</label>
+                  <input
+                    id="phone-number"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="Phone number"
+                    autoComplete="tel"
+                    required
+                    className="w-full rounded-full border border-teal-deep/20 bg-white py-3.5 px-5 text-sm text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <span className="mb-2 block px-1 text-xs font-medium text-ink-muted">Gender</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    {GENDER_CHOICES.map((choice) => (
+                      <button
+                        key={choice.value}
+                        type="button"
+                        onClick={() => setGender(choice.value)}
+                        className={`rounded-xl border px-3 py-3 text-center text-sm font-medium transition-all focus:outline-none ${
+                          gender === choice.value
+                            ? "border-teal-deep bg-teal-deep/10 text-ink"
+                            : "border-ink/10 bg-white text-ink-muted hover:border-teal-deep/40"
+                        }`}
+                      >
+                        {choice.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="nationality" className="sr-only">Nationality</label>
+                  <input
+                    id="nationality"
+                    type="text"
+                    value={nationality}
+                    onChange={(e) => setNationality(e.target.value)}
+                    placeholder="Nationality"
+                    autoComplete="country-name"
+                    required
+                    className="w-full rounded-full border border-teal-deep/20 bg-white py-3.5 px-5 text-sm text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="state-of-origin" className="sr-only">State of origin</label>
+                  <input
+                    id="state-of-origin"
+                    type="text"
+                    value={stateOfOrigin}
+                    onChange={(e) => setStateOfOrigin(e.target.value)}
+                    placeholder="State of origin"
+                    required
+                    className="w-full rounded-full border border-teal-deep/20 bg-white py-3.5 px-5 text-sm text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="additional-info" className="sr-only">Any other relevant information (optional)</label>
+                  <textarea
+                    id="additional-info"
+                    value={additionalInfo}
+                    onChange={(e) => setAdditionalInfo(e.target.value)}
+                    placeholder="Anything else relevant to your application? (optional)"
+                    rows={3}
+                    className="w-full rounded-2xl border border-teal-deep/20 bg-white px-5 py-4 text-sm text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={!phoneNumber.trim() || !gender || !nationality.trim() || !stateOfOrigin.trim()}
+                  className="w-full"
+                >
+                  Continue
+                </Button>
+              </form>
+            </motion.div>
+          )}
+
           {/* STEP: Q1 — fixed-choice, quick filter */}
           {step === "q1" && (
             <motion.div
@@ -370,7 +506,7 @@ export default function SignupPage() {
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col text-center items-center"
             >
-              <button onClick={() => setStep("name")} className="mb-4 rounded-full p-2 text-ink/40 transition-colors hover:bg-black/5 hover:text-ink" aria-label="Go back">
+              <button onClick={() => setStep("details")} className="mb-4 rounded-full p-2 text-ink/40 transition-colors hover:bg-black/5 hover:text-ink" aria-label="Go back">
                 <ArrowLeft className="h-5 w-5" />
               </button>
               <div className="mb-8">
@@ -532,7 +668,7 @@ export default function SignupPage() {
                 Welcome back.
               </h2>
               <p className="mt-4 text-base text-ink-muted">
-                You&apos;ve already applied to Cohort 01 — we&apos;ll be in touch.
+                You&apos;ve already applied to Cohort 01, we&apos;ll be in touch.
               </p>
               <Link href="/" className="mt-8">
                 <Button>Return Home</Button>

@@ -120,6 +120,15 @@ model CohortApplication {
   primaryGoal       String
   about             String
   motivation        String
+  // Added 2026-08-14 alongside the new "details" signup step. Nullable —
+  // applications submitted before this field existed have no real value to
+  // backfill, so it's required at the Zod/form level for new submissions
+  // only, not enforced at the DB level.
+  phoneNumber       String?
+  gender            String?
+  nationality       String?
+  stateOfOrigin     String?
+  additionalInfo    String?
   reviewed          Boolean  @default(false)
   createdAt         DateTime @default(now())
 
