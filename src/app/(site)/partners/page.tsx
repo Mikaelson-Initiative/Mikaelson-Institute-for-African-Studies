@@ -6,6 +6,12 @@ export const metadata: Metadata = {
   title: "Partners",
   description:
     "Institutions and organizations partnering with the Mikaelson Institute for African Studies in scholarship, research, knowledge preservation, and African intellectual life.",
+  keywords: [
+    "African studies partnerships",
+    "African studies institutions",
+    "African studies collaboration",
+  ],
+  alternates: { canonical: "/partners" },
 };
 
 // Revalidate periodically instead of caching at build time — otherwise a

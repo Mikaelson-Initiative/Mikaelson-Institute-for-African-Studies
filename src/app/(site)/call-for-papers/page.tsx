@@ -9,6 +9,12 @@ export const metadata: Metadata = {
   title: "Call for Papers",
   description:
     "Mikaelson Institute for African Studies invites researchers, scholars, independent intellectuals, writers, and emerging academics to submit original work for consideration.",
+  keywords: [
+    "African studies call for papers",
+    "African studies research areas",
+    "African studies academic submissions",
+  ],
+  alternates: { canonical: "/call-for-papers" },
 };
 
 const researchAreas = [

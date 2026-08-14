@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   title: "Books",
   description:
     "Recommended reading aligned with the Institute's research areas, organised by focus area.",
+  keywords: ["African studies reading list", "African studies books", "African history books"],
+  alternates: { canonical: "/library/books" },
 };
 
 // Revalidate periodically instead of caching at build time — otherwise a

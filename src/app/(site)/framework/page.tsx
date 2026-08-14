@@ -6,6 +6,13 @@ import { frameworkStages } from "@/lib/framework-stages";
 export const metadata: Metadata = {
   title: "Framework",
   description: "The chronological framework behind MIAS's History & Decolonization research.",
+  keywords: [
+    "African history framework",
+    "decolonization studies",
+    "African studies research methodology",
+    "African history timeline",
+  ],
+  alternates: { canonical: "/framework" },
 };
 
 export default function FrameworkPage() {

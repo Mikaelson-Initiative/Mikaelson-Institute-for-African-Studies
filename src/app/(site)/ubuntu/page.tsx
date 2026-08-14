@@ -7,6 +7,13 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Ubuntu | Community Cohort",
   description: "Join the Mikaelson Institute's Community Cohort for African History Education.",
+  keywords: [
+    "Ubuntu philosophy",
+    "African history education",
+    "African studies cohort",
+    "African studies community learning",
+  ],
+  alternates: { canonical: "/ubuntu" },
 };
 
 const programmes = [

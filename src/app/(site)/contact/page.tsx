@@ -7,6 +7,8 @@ import { ContactForm } from "@/components/forms/contact-form";
 export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with the Mikaelson Institute for African Studies.",
+  keywords: ["contact African studies institute", "African studies research inquiries"],
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {

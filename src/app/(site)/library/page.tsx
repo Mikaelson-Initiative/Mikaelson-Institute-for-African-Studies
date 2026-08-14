@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   title: "Library",
   description:
     "The Mikaelson Library — a long-term intellectual resource for the study of Africa, bringing together scholarship, archival materials, research guides, and digital resources.",
+  keywords: [
+    "African studies library",
+    "African studies archive",
+    "African studies research guides",
+    "African studies scholarship",
+  ],
+  alternates: { canonical: "/library" },
 };
 
 const collections = [

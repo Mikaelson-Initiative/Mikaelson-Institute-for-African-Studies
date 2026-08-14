@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Landmark, Scale, Palette, BookOpen, ArrowRight } from "lucide-react";
+import { Landmark, Scale, Palette, BookOpen, ArrowRight, Microscope } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
 import { SubmitPaperForm } from "@/components/forms/submit-paper-form";
 import { SectionLabel } from "@/components/section-label";
@@ -8,7 +8,13 @@ import { focusAreas } from "@/lib/focus-areas";
 export const metadata: Metadata = {
   title: "Submit a Paper",
   description:
-    "Submit original scholarship to Mikaelson Institute for African Studies across history & decolonization, society & politics, arts & culture, and religion & philosophy.",
+    "Submit original scholarship to Mikaelson Institute for African Studies across history & decolonization, society & politics, arts & culture, religion & philosophy, and STEM & Metaphysics.",
+  keywords: [
+    "African studies journal submission",
+    "African studies call for papers",
+    "African studies research publication",
+  ],
+  alternates: { canonical: "/submit" },
 };
 
 const iconMap = {
@@ -16,6 +22,7 @@ const iconMap = {
   scale: Scale,
   palette: Palette,
   "book-open": BookOpen,
+  microscope: Microscope,
 } as const;
 
 const qualities = [
@@ -77,7 +84,7 @@ export default function SubmitPage() {
             <Reveal>
               <SectionLabel>Research Areas</SectionLabel>
               <p className="mt-3 text-base text-ink-muted">
-                We accept work across all four of the Institute&rsquo;s research
+                We accept work across all of the Institute&rsquo;s research
                 areas. Interdisciplinary work is encouraged.
               </p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">

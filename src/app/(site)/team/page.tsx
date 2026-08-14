@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   title: "Team",
   description:
     "The people behind Mikaelson Institute for African Studies — researchers, scholars, editors, and community members committed to rigorous African scholarship.",
+  keywords: ["African studies researchers", "African studies scholars", "African studies team"],
+  alternates: { canonical: "/team" },
 };
 
 // Revalidate periodically instead of caching at build time — otherwise a
