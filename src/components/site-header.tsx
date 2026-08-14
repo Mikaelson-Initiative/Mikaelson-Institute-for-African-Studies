@@ -44,7 +44,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden lg:block">
-          <Button href="/partners">Partner with us</Button>
+          <Button href="/library/support">Support Our Library</Button>
         </div>
 
         <button
@@ -107,8 +107,8 @@ export function SiteHeader() {
               );
             })}
             <li className="py-3">
-              <Button href="/partners" className="w-full" onClick={() => setMenuOpen(false)}>
-                Partner with us
+              <Button href="/library/support" className="w-full" onClick={() => setMenuOpen(false)}>
+                Support Our Library
               </Button>
             </li>
           </ul>

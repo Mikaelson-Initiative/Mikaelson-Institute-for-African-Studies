@@ -1,17 +1,18 @@
 "use client";
 
-import type { ContactMessage, Submission, CohortApplication, TeamMember, Partner, BookRecommendation, GalleryItem } from "@prisma/client";
+import type { ContactMessage, Submission, CohortApplication, TeamMember, Partner, BookRecommendation, GalleryItem, LibraryContribution } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { signOut } from "next-auth/react";
-import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard } from "lucide-react";
+import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake } from "lucide-react";
 import { useState } from "react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
 
 type ApplicationWithUser = CohortApplication & { user: { name: string | null; email: string | null } };
 
-type Section = "overview" | "messages" | "submissions" | "applications" | "team" | "partners" | "books" | "gallery";
+type Section = "overview" | "messages" | "submissions" | "applications" | "team" | "partners" | "books" | "gallery" | "library-support";
 
 const SUBMISSION_STATUSES = ["submitted", "in_review", "revisions_requested", "accepted", "rejected", "published"] as const;
+const CONTRIBUTION_STATUSES = ["pending", "completed", "failed"] as const;
 
 export function AdminDashboardClient({
   contactMessages,
@@ -21,6 +22,7 @@ export function AdminDashboardClient({
   partners,
   books,
   galleryItems,
+  libraryContributions,
 }: {
   contactMessages: ContactMessage[];
   submissions: Submission[];
@@ -29,6 +31,7 @@ export function AdminDashboardClient({
   partners: Partner[];
   books: BookRecommendation[];
   galleryItems: GalleryItem[];
+  libraryContributions: LibraryContribution[];
 }) {
   const [section, setSection] = useState<Section>("overview");
   const [messages, setMessages] = useState(contactMessages);
@@ -39,6 +42,7 @@ export function AdminDashboardClient({
   const [partnerList, setPartnerList] = useState(partners);
   const [bookList, setBookList] = useState(books);
   const [gallery, setGallery] = useState(galleryItems);
+  const [contributions, setContributions] = useState(libraryContributions);
 
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [showPartnerForm, setShowPartnerForm] = useState(false);
@@ -73,6 +77,19 @@ export function AdminDashboardClient({
     });
     if (!response.ok && previous) {
       setSubs((prev) => prev.map((s) => (s.id === id ? { ...s, status: previous } : s)));
+    }
+  };
+
+  const changeContributionStatus = async (id: string, status: string) => {
+    const previous = contributions.find((c) => c.id === id)?.status;
+    setContributions((prev) => prev.map((c) => (c.id === id ? { ...c, status: status as LibraryContribution["status"] } : c)));
+    const response = await fetch(`/api/admin/library-contributions/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    if (!response.ok && previous) {
+      setContributions((prev) => prev.map((c) => (c.id === id ? { ...c, status: previous } : c)));
     }
   };
 
@@ -231,6 +248,7 @@ export function AdminDashboardClient({
                 <MetricCard title="Partners" value={partnerList.length} icon={<Handshake className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("partners")} />
                 <MetricCard title="Library Books" value={bookList.length} icon={<Book className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("books")} />
                 <MetricCard title="Art Gallery" value={gallery.length} icon={<Camera className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("gallery")} />
+                <MetricCard title="Library Support" value={contributions.length} subtitle={`${contributions.filter(c => c.status === "pending").length} pending`} icon={<HeartHandshake className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("library-support")} />
               </div>
             </motion.div>
           )}
@@ -246,7 +264,7 @@ export function AdminDashboardClient({
                   <div key={m.id} className={`rounded-xl border p-4 ${m.resolved ? "border-ink/10 bg-paper/60 opacity-60" : "border-ink/10 bg-paper"}`}>
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="font-semibold text-ink">{m.name} <span className="font-normal text-ink-muted">— {m.email}</span></p>
+                        <p className="font-semibold text-ink">{m.name} <span className="font-normal text-ink-muted">, {m.email}</span></p>
                         <p className="mt-1 text-sm text-ink">{m.message}</p>
                         <p className="mt-2 font-mono-ledger text-xs text-ink/40">{new Date(m.createdAt).toLocaleString()}</p>
                       </div>
@@ -277,7 +295,7 @@ export function AdminDashboardClient({
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <p className="font-semibold text-ink">{s.title}</p>
-                        <p className="text-sm text-ink-muted">{s.authorName} — {s.authorEmail} · {s.focusArea}</p>
+                        <p className="text-sm text-ink-muted">{s.authorName} - {s.authorEmail} · {s.focusArea}</p>
                         <p className="mt-2 line-clamp-2 text-sm text-ink">{s.abstract}</p>
                         <a href={s.fileUrl} target="_blank" rel="noreferrer noopener" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-teal-deep hover:underline">
                           {s.fileName} <ExternalLink aria-hidden="true" className="h-3 w-3" />
@@ -311,12 +329,23 @@ export function AdminDashboardClient({
                   <div key={a.id} className={`rounded-xl border p-4 ${a.reviewed ? "border-ink/10 bg-paper/60 opacity-60" : "border-ink/10 bg-paper"}`}>
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="font-semibold text-ink">{a.user.name ?? "Unnamed"} <span className="font-normal text-ink-muted">— {a.user.email}</span></p>
+                        <p className="font-semibold text-ink">{a.user.name ?? "Unnamed"} <span className="font-normal text-ink-muted">, {a.user.email}</span></p>
                         <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
                           First time: {a.firstTimeStudying} · Goal: {a.primaryGoal}
                         </p>
+                        {(a.phoneNumber || a.gender || a.nationality || a.stateOfOrigin) && (
+                          <p className="mt-1 text-xs text-ink-muted">
+                            {a.phoneNumber && <>{a.phoneNumber} · </>}
+                            {a.gender && <>{a.gender} · </>}
+                            {a.nationality && <>{a.nationality}</>}
+                            {a.stateOfOrigin && <>, {a.stateOfOrigin}</>}
+                          </p>
+                        )}
                         <p className="mt-2 text-sm text-ink"><strong>About:</strong> {a.about}</p>
                         <p className="mt-1 text-sm text-ink"><strong>Motivation:</strong> {a.motivation}</p>
+                        {a.additionalInfo && (
+                          <p className="mt-1 text-sm text-ink"><strong>Additional info:</strong> {a.additionalInfo}</p>
+                        )}
                         <p className="mt-2 font-mono-ledger text-xs text-ink/40">{new Date(a.createdAt).toLocaleString()}</p>
                       </div>
                       <button
@@ -379,7 +408,7 @@ export function AdminDashboardClient({
                     <div className="flex items-center gap-4">
                       {member.image && <img src={member.image} alt="" className="w-10 h-10 rounded-full object-cover bg-ink/5" />}
                       <div>
-                        <p className="font-semibold text-ink">{member.name} <span className="text-ink-muted font-normal">— {member.role}</span></p>
+                        <p className="font-semibold text-ink">{member.name} <span className="text-ink-muted font-normal">, {member.role}</span></p>
                         <p className="text-xs text-ink-muted uppercase tracking-wide mt-1">Category: {member.category} | Index: {member.displayIndex}</p>
                         {member.affiliation && <p className="text-sm text-ink/70 mt-1">{member.affiliation}</p>}
                       </div>
@@ -576,6 +605,42 @@ export function AdminDashboardClient({
             </motion.div>
           )}
 
+          {section === "library-support" && (
+            <motion.div key="library-support" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+              <h2 className="mb-4 font-display text-lg font-semibold text-ink">
+                Library Support <span className="text-ink-muted">({contributions.length})</span>
+              </h2>
+              <p className="mb-4 text-sm text-ink-muted">
+                Pledges land here as &ldquo;pending.&rdquo; Mark a pledge &ldquo;completed&rdquo; once payment is confirmed, only completed pledges count toward the public progress tracker and leaderboard.
+              </p>
+              <div className="space-y-3">
+                {contributions.length === 0 && <EmptyState label="No library contributions yet." />}
+                {contributions.map((c) => (
+                  <div key={c.id} className="rounded-xl border border-ink/10 bg-paper p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-ink">{c.name} <span className="font-normal text-ink-muted">, {c.email}</span></p>
+                        <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                          ₦{c.amount.toLocaleString()}{c.tier ? ` · ${c.tier}` : ""}
+                        </p>
+                        <p className="mt-2 font-mono-ledger text-xs text-ink/40">{new Date(c.createdAt).toLocaleString()}</p>
+                      </div>
+                      <select
+                        value={c.status}
+                        onChange={(e) => changeContributionStatus(c.id, e.target.value)}
+                        className="shrink-0 rounded-full border border-ink/20 bg-white px-3 py-1.5 text-xs font-semibold text-ink focus:border-teal-deep focus:outline-none"
+                      >
+                        {CONTRIBUTION_STATUSES.map((status) => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
         </AnimatePresence>
       </main>
 
@@ -627,6 +692,12 @@ export function AdminDashboardClient({
             <DockLabel>Gallery ({gallery.length})</DockLabel>
             <DockIcon>
               <Camera className="h-full w-full text-ink-muted" />
+            </DockIcon>
+          </DockItem>
+          <DockItem className="aspect-square rounded-full bg-white" onClick={() => setSection("library-support")} aria-pressed={section === "library-support"}>
+            <DockLabel>Library Support{contributions.filter((c) => c.status === "pending").length > 0 ? ` (${contributions.filter((c) => c.status === "pending").length})` : ""}</DockLabel>
+            <DockIcon>
+              <HeartHandshake className="h-full w-full text-ink-muted" />
             </DockIcon>
           </DockItem>
         </Dock>

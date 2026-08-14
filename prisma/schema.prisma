@@ -185,3 +185,30 @@ model GalleryItem {
 
   @@index([sortOrder])
 }
+
+enum ContributionStatus {
+  pending
+  completed
+  failed
+}
+
+// Backs /library/support (the "1,000,000 Books Project"). A row is created
+// the moment someone submits the pledge form, status "pending" — actually
+// charging the card is the payment integration, out of scope here. Staff can
+// flip status to "completed" from the admin dashboard once a payment is
+// confirmed (manually for now, or via a future Paystack webhook), which is
+// what makes a pledge count toward the progress tracker and leaderboard.
+model LibraryContribution {
+  id        String             @id @default(cuid())
+  name      String
+  email     String
+  amount    Int
+  tier      String?
+  status    ContributionStatus @default(pending)
+  reference String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}

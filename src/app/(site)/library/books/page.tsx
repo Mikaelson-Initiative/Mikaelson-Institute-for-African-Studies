@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { BooksClient, type Genre } from "@/components/books-client";
+import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 
 // Previously impossible: the old page.tsx was a "use client" component
@@ -79,6 +81,12 @@ export default async function BooksPage() {
         lede="Scholarship worth reading. Organised by research area."
       />
       <BooksClient genres={genres} />
+      <div className="mx-auto max-w-4xl px-4 pb-16 text-center sm:px-6">
+        <Button href="/library/support">
+          Support Our Library
+          <ArrowRight aria-hidden="true" className="h-4 w-4" />
+        </Button>
+      </div>
     </>
   );
 }

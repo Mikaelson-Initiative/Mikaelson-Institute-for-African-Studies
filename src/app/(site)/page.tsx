@@ -33,7 +33,7 @@ export default function HomePage() {
             <StaggerItem>
               <p className="mx-auto mt-6 max-w-2xl text-lg text-paper/80">
                 The Mikaelson Institute for African Studies is a general
-                academic research institute — publishing scholarship in
+                academic research institute, publishing scholarship in
                 history and decolonization, society and politics, arts and
                 culture, and religion and philosophy.
               </p>
@@ -62,7 +62,7 @@ export default function HomePage() {
           <p className="mt-4 text-base text-ink-muted sm:text-lg">
             MIAS is a new initiative of the Mikaelson Community Development
             and Tech Initiative, built to stand on its own as an academic
-            body — a home for rigorous, peer-reviewed scholarship on Africa,
+            body, a home for rigorous, peer-reviewed scholarship on Africa,
             written for scholars, universities, and the public alike.
           </p>
           <div className="mt-6">
@@ -105,7 +105,7 @@ export default function HomePage() {
             <p className="mt-4 max-w-2xl text-base text-ink-muted sm:text-lg">
               Every accepted paper becomes part of a permanent, citable
               archive, published in volumes and freely accessible. The first
-              volume is forming now — submissions are open.
+              volume is forming now. Submissions are open.
             </p>
           </Reveal>
           <Reveal delay={0.1}>
@@ -115,8 +115,8 @@ export default function HomePage() {
           </Reveal>
           <Reveal delay={0.15}>
             <div className="mt-8">
-              <Button href="/submit" variant="ghost">
-                Submit a Paper
+              <Button href="/library" variant="ghost">
+                View Library
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </Button>
             </div>
@@ -132,7 +132,7 @@ export default function HomePage() {
           </h2>
           <p className="mt-4 text-base text-ink-muted sm:text-lg">
             Our History &amp; Decolonization research follows a chronological
-            throughline — from pre-colonial societies, through contact and
+            throughline, from pre-colonial societies, through contact and
             colonial rule, to independence and the contemporary continent.
           </p>
           <div className="mt-6">

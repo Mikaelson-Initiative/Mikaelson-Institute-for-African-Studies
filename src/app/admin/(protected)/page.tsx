@@ -20,6 +20,7 @@ export default async function AdminPage() {
     partners,
     books,
     galleryItems,
+    libraryContributions,
   ] = await Promise.all([
     prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.submission.findMany({ orderBy: { createdAt: "desc" } }),
@@ -31,6 +32,7 @@ export default async function AdminPage() {
     prisma.partner.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.bookRecommendation.findMany({ orderBy: [{ genre: "asc" }, { sortOrder: "asc" }] }),
     prisma.galleryItem.findMany({ orderBy: { sortOrder: "asc" } }),
+    prisma.libraryContribution.findMany({ orderBy: { createdAt: "desc" } }),
   ]);
 
   return (
@@ -42,6 +44,7 @@ export default async function AdminPage() {
       partners={partners}
       books={books}
       galleryItems={galleryItems}
+      libraryContributions={libraryContributions}
     />
   );
 }

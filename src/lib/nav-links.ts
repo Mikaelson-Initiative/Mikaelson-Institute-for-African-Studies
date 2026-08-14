@@ -29,6 +29,7 @@ export const navGroups: NavGroup[] = [
       { href: "/library/books", label: "Books" },
       { href: "/library/archive", label: "Published Papers / Archive" },
       { href: "/library/gallery", label: "Gallery" },
+      { href: "/library/support", label: "Support Our Library" },
     ],
   },
   {
