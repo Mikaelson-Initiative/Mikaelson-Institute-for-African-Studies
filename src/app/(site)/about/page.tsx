@@ -28,7 +28,7 @@ const scrollItems = [
   {
     title: "Why We Do This",
     description:
-      "For too long, there has been a profound lack of thorough, internally-driven academic research into African history, civilizations, and philosophies. Knowledge shapes how societies understand themselves, and we exist to change this paradigm. Africa must not only be studied by the world — it must be a place from which the world produces knowledge.",
+      "For too long, there has been a profound lack of thorough, internally-driven academic research into African history, civilizations, and philosophies. Knowledge shapes how societies understand themselves, and we exist to change this paradigm. Africa must not only be studied by the world; it must be a place from which the world produces knowledge.",
     image: "/images/about/why-we-do-this.png",
   },
   {
@@ -57,7 +57,7 @@ export default function AboutPage() {
       <PageHero
         eyebrow="Our Mission"
         title="A pan-African research institute, built to last."
-        lede="Mikaelson Institute for African Studies is dedicated to the study, preservation, production, and dissemination of knowledge about Africa and its peoples. We exist because Africa must not only be studied by the world — Africa must also be a place from which the world produces knowledge."
+        lede="Mikaelson Institute for African Studies is dedicated to the study, preservation, production, and dissemination of knowledge about Africa and its peoples. We exist because Africa must not only be studied by the world; Africa must also be a place from which the world produces knowledge."
       />
       <ScrollSequence items={scrollItems}>
         <div className="mx-auto max-w-3xl px-4 pt-12 pb-8 sm:px-6">
@@ -68,7 +68,7 @@ export default function AboutPage() {
               MIAS is a new initiative of the Mikaelson Community Development and
               Tech Initiative. The Institute shares the parent
               organization&rsquo;s brand system but operates with its own
-              editorial and academic independence — the credibility a research
+              editorial and academic independence: the credibility a research
               institute needs is separate from, though connected to, the
               Initiative that founded it.
             </p>

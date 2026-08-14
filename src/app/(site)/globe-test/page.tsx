@@ -22,7 +22,7 @@ const GlobeScene = dynamic(
 export default function GlobeTestPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-      <h1 className="font-display text-2xl font-semibold text-ink">Globe test — Step 2</h1>
+      <h1 className="font-display text-2xl font-semibold text-ink">Globe test: Step 2</h1>
       <p className="mt-2 text-sm text-ink-muted">
         15 empire markers as static glowing points, still auto-rotating, no
         scroll or labels yet. Check that markers sit on the surface (not

@@ -30,7 +30,7 @@ export const focusAreas: FocusArea[] = [
     slug: "arts-literature-culture",
     title: "Arts, Literature & Culture",
     summary:
-      "Creative and cultural production — literature, oral tradition, visual and performing arts — across Africa.",
+      "Creative and cultural production, literature, oral tradition, visual and performing arts, across Africa.",
     icon: "palette",
   },
   {

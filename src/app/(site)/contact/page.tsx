@@ -23,7 +23,7 @@ export default function ContactPage() {
                 We&rsquo;d like to hear from you.
               </h2>
               <p className="mt-3 max-w-sm text-ink-muted">
-                Questions about research, partnerships, submissions, or anything else — send a
+                Questions about research, partnerships, submissions, or anything else: send a
                 message and the Institute will respond directly.
               </p>
               <div className="mt-8 space-y-4">

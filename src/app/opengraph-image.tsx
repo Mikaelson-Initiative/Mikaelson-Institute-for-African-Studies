@@ -39,7 +39,7 @@ export default async function OpengraphImage() {
           Mikaelson Institute for African Studies
         </div>
         <div style={{ fontSize: 28, color: "#5CE1E6" }}>
-          Pan-African scholarship — history, society, arts, philosophy
+          Pan-African scholarship: history, society, arts, philosophy
         </div>
       </div>
     ),

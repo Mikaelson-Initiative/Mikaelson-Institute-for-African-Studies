@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
   if (!result.ok) {
     return NextResponse.json(
-      { error: "cooldown", message: "A code was already sent — check your inbox, or try again in a minute." },
+      { error: "cooldown", message: "A code was already sent, check your inbox, or try again in a minute." },
       { status: 429 },
     );
   }

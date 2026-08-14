@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: SITE_NAME,
-    template: "%s — Mikaelson Institute for African Studies",
+    template: "%s - Mikaelson Institute for African Studies",
   },
   description: SITE_DESCRIPTION,
   keywords: [

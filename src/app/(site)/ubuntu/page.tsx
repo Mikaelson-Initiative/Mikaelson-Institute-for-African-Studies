@@ -78,7 +78,7 @@ export default function UbuntuPage() {
               <span className="text-[#a0948e]">It represents an understanding of human life rooted in relationship, dignity, and community.</span>
             </h2>
             <p className="mt-8 text-lg text-ink-muted">
-              At Mikaelson Institute for African Studies, Ubuntu informs how we understand intellectual life. Knowledge does not exist only for the person who discovers it—it must strengthen the community.
+              At Mikaelson Institute for African Studies, Ubuntu informs how we understand intellectual life. Knowledge does not exist only for the person who discovers it, it must strengthen the community.
             </p>
           </Reveal>
         </div>

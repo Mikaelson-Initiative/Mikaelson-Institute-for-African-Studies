@@ -43,15 +43,15 @@ const categories: Category[] = [
     cards: [
       {
         imgUrl: forthcomingCover(["The Duality", "of a Black Man"], AUTHOR),
-        alt: `The Duality of a Black Man — by ${AUTHOR}, forthcoming`,
+        alt: `The Duality of a Black Man, by ${AUTHOR}, forthcoming`,
       },
       {
         imgUrl: forthcomingCover(["If Africa Was", "Never Colonized"], AUTHOR),
-        alt: `If Africa Was Never Colonized — by ${AUTHOR}, forthcoming`,
+        alt: `If Africa Was Never Colonized, by ${AUTHOR}, forthcoming`,
       },
       {
         imgUrl: forthcomingCover(["The Future", "of Africa"], AUTHOR),
-        alt: `The Future of Africa — by ${AUTHOR}, forthcoming`,
+        alt: `The Future of Africa, by ${AUTHOR}, forthcoming`,
       },
     ],
   },
@@ -153,7 +153,7 @@ export default function ArchivePage() {
               <div className="mt-6">
                 <PlaceholderNotice>
                   no papers or forthcoming titles have been confirmed yet for{" "}
-                  {current.label} — nothing is invented for this build.
+                  {current.label}, nothing is invented for this build.
                 </PlaceholderNotice>
                 <div className="mt-6 grid gap-6 sm:grid-cols-3">
                   {Array.from({ length: 3 }).map((_, index) => (
@@ -177,13 +177,13 @@ export default function ArchivePage() {
         <Reveal className="mt-10">
           <div className="rounded-lg border border-ink/10 bg-paper p-5">
             <p className="font-mono-ledger text-xs text-ink-muted">
-              <span className="font-semibold text-ink">Archive note —</span>{" "}
+              <span className="font-semibold text-ink">Archive note:</span>{" "}
               The Institute&rsquo;s own peer-reviewed publications will appear
               here as each Call for Papers cohort completes editorial review.
               The only real titles shown today are the three books marked
               &ldquo;Forthcoming&rdquo; under History &amp; Decolonization, by
               the Institute&rsquo;s founder, Michael Olukayode, with no
-              confirmed release date yet — no other papers or books are
+              confirmed release date yet; no other papers or books are
               invented for this build.
             </p>
           </div>

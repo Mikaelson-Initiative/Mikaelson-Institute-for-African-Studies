@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 export function DraftNotice({ children }: { children: ReactNode }) {
   return (
     <p className="rounded border border-turquoise bg-paper px-4 py-3 font-mono-ledger text-xs text-ink-muted">
-      <span className="font-semibold text-ink">Draft —</span> {children}
+      <span className="font-semibold text-ink">Draft -</span> {children}
     </p>
   );
 }

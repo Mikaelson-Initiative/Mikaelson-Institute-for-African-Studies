@@ -23,7 +23,7 @@ export default function PrivacyPage() {
 
         <Reveal>
           <DraftNotice>
-            standard template drafted for the Institute&rsquo;s review — not
+            standard template drafted for the Institute&rsquo;s review, not
             legal advice, and not final until the Institute (or its counsel)
             confirms it. This policy should be reviewed by qualified legal
             counsel before final publication and adapted to reflect the
@@ -58,8 +58,8 @@ export default function PrivacyPage() {
             <p>
               <strong className="text-ink">Website usage information.</strong>{" "}
               This website may collect standard technical information about
-              visits — such as page views, browser type, and referring
-              pages — through server logs or analytics tools, where such tools
+              visits, such as page views, browser type, and referring
+              pages, through server logs or analytics tools, where such tools
               are in use. Where analytics are used, they are configured to
               minimize data collection consistent with their purpose.
             </p>
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
           <div className="mt-3 space-y-3 text-ink-muted">
             <p>
               Submission data is used solely to operate the editorial review
-              process — routing your paper to reviewers, tracking its status, and
+              process: routing your paper to reviewers, tracking its status, and
               communicating updates to you. Contact and enquiry data is used only
               to respond to your message.
             </p>
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
             Manuscripts submitted for review are handled under conditions of
             confidentiality appropriate to the review process. Your submission is
             shared with the reviewers and editors assigned to it, and with no one
-            else, unless the paper is accepted and published — at which point the
+            else, unless the paper is accepted and published, at which point the
             paper and your author attribution become part of the public record.
           </p>
         </Reveal>

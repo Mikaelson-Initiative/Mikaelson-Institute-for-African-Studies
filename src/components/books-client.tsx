@@ -81,7 +81,7 @@ export function BooksClient({ genres }: { genres: Genre[] }) {
       <Reveal className="mt-10">
         <div className="rounded-lg border border-ink/10 bg-paper p-5">
           <p className="font-mono-ledger text-xs text-ink-muted">
-            <span className="font-semibold text-ink">Note —</span> These
+            <span className="font-semibold text-ink">Note -</span> These
             titles are presented as recommended reading aligned with the
             Institute&rsquo;s research areas. They are not published by
             Mikaelson Institute for African Studies. The Institute&rsquo;s own

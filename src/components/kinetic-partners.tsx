@@ -235,7 +235,7 @@ export function KineticPartners({
                 ))}
             {isEmpty && (
               <p className="mt-3 font-mono-ledger text-xs text-ink-muted">
-                partner institutions haven&rsquo;t been confirmed yet — no
+                partner institutions haven&rsquo;t been confirmed yet; no
                 names, logos, or affiliations are invented for this build.
               </p>
             )}

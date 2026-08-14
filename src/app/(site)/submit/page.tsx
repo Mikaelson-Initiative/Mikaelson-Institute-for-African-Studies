@@ -41,7 +41,7 @@ const iconMap = {
 const qualities = [
   {
     word: "Original.",
-    detail: "It contributes something new — not just a summary of existing work.",
+    detail: "It contributes something new, not just a summary of existing work.",
   },
   {
     word: "Rigorous.",
@@ -65,7 +65,7 @@ const steps = [
   {
     icon: Send,
     title: "Submit",
-    detail: "Send your paper — no account or fee required.",
+    detail: "Send your paper, no account or fee required.",
   },
   {
     icon: Search,
@@ -146,7 +146,7 @@ export default function SubmitPage() {
           <ComingSoonNotice>
             Our first priority right now is Ubuntu, the Institute&rsquo;s
             cohort-based learning programme. A formal call for papers will
-            follow once that is underway — the form below remains open if
+            follow once that is underway; the form below remains open if
             you&rsquo;d like to submit ahead of it.
           </ComingSoonNotice>
         </Reveal>
@@ -231,7 +231,7 @@ export default function SubmitPage() {
                 })}
               </div>
               <p className="mt-6 text-sm text-ink-muted">
-                No account is required — you will receive a tracking link
+                No account is required: you will receive a tracking link
                 immediately after submission. Before submitting, please read
                 the{" "}
                 <a href="/terms" className="text-teal-deep underline">

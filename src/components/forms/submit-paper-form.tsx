@@ -151,7 +151,7 @@ export function SubmitPaperForm() {
           <p className="mt-1 text-ink-muted">
             Your reference number is{" "}
             <span className="font-mono-ledger text-ink">{submittedId}</span>. A confirmation
-            email is on its way — keep it for your records.
+            email is on its way, keep it for your records.
           </p>
         </div>
       </motion.div>

@@ -25,9 +25,9 @@ export default function FrameworkPage() {
   return (
     <>
       <PageHero
-        eyebrow="History & Decolonization — Approach"
+        eyebrow="History & Decolonization: Approach"
         title="A chronological framework."
-        lede="Our History & Decolonization research follows a single historical throughline, from pre-colonial societies to the contemporary continent — one of MIAS's four focus areas, not the whole of its work."
+        lede="Our History & Decolonization research follows a single historical throughline, from pre-colonial societies to the contemporary continent (one of MIAS's four focus areas, not the whole of its work)."
       />
 
       <ScrollSequence items={scrollItems} />

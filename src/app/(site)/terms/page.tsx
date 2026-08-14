@@ -7,7 +7,7 @@ import { SectionLabel } from "@/components/section-label";
 export const metadata: Metadata = {
   title: "Terms of Submission",
   description:
-    "Submission terms for the Mikaelson Institute for African Studies — covering originality, scope, scholarly standards, authorship, research ethics, copyright, and review.",
+    "Submission terms for the Mikaelson Institute for African Studies: covering originality, scope, scholarly standards, authorship, research ethics, copyright, and review.",
 };
 
 export default function TermsPage() {
@@ -23,7 +23,7 @@ export default function TermsPage() {
 
         <Reveal>
           <DraftNotice>
-            standard template drafted for the Institute&rsquo;s review — not
+            standard template drafted for the Institute&rsquo;s review, not
             legal advice, and not final until the Institute (or its counsel)
             confirms it. Last drafted August 2026.
           </DraftNotice>
@@ -40,8 +40,8 @@ export default function TermsPage() {
             </p>
             <p>
               Authors are responsible for securing any permissions required to
-              reproduce third-party material — images, extended quotations, data,
-              or other content — within their submission.
+              reproduce third-party material, images, extended quotations, data,
+              or other content, within their submission.
             </p>
           </div>
         </Reveal>
@@ -88,8 +88,8 @@ export default function TermsPage() {
             By submitting a paper, you confirm that you are its author (or have
             the authority to submit on behalf of all listed co-authors) and that
             all listed authors have made a meaningful intellectual contribution to
-            the work. Ghost authorship — listing individuals who did not
-            meaningfully contribute, or excluding those who did — is not
+            the work. Ghost authorship, listing individuals who did not
+            meaningfully contribute, or excluding those who did, is not
             acceptable.
           </p>
         </Reveal>
@@ -99,7 +99,7 @@ export default function TermsPage() {
           <p className="mt-3 text-ink-muted">
             Authors are responsible for ensuring that their research was
             conducted with appropriate ethical approvals, permissions, informed
-            consent, and safeguards where applicable — including research
+            consent, and safeguards where applicable, including research
             involving human participants, communities, sensitive materials, or
             personal data. The Institute may request documentation of ethical
             approvals in connection with a submission.
@@ -112,22 +112,22 @@ export default function TermsPage() {
             <p>The Institute does not accept:</p>
             <ul className="ml-4 list-disc space-y-1">
               <li>
-                <strong className="text-ink">Plagiarism</strong> — presenting
+                <strong className="text-ink">Plagiarism</strong>: presenting
                 another person&rsquo;s work, words, or ideas as your own without
                 appropriate attribution.
               </li>
               <li>
-                <strong className="text-ink">Fabrication</strong> — inventing or
+                <strong className="text-ink">Fabrication</strong>: inventing or
                 misrepresenting research data, findings, sources, or evidence.
               </li>
               <li>
-                <strong className="text-ink">Falsification</strong> — altering,
+                <strong className="text-ink">Falsification</strong>: altering,
                 omitting, or manipulating data, sources, or evidence in ways that
                 distort the record.
               </li>
               <li>
-                <strong className="text-ink">Deliberate misrepresentation</strong>{" "}
-                — making claims about the origin, authorship, status, or nature
+                <strong className="text-ink">Deliberate misrepresentation</strong>: making
+                claims about the origin, authorship, status, or nature
                 of a submission that the submitting author knows to be false.
               </li>
             </ul>
@@ -151,8 +151,8 @@ export default function TermsPage() {
             <p>
               Authors retain copyright in their work. By submitting, you grant
               the Institute a non-exclusive, worldwide licence to review, edit
-              for publication, publish, and distribute your paper — in print and
-              online, as part of the Institute&rsquo;s archive — if it is
+              for publication, publish, and distribute your paper, in print and
+              online, as part of the Institute&rsquo;s archive, if it is
               accepted. This licence does not prevent you from publishing the
               same work elsewhere subsequently, though we ask that any later
               publication credit its first appearance in the Institute&rsquo;s
@@ -219,7 +219,7 @@ export default function TermsPage() {
 
         <Reveal>
           <DraftNotice>
-            standard template drafted for the Institute&rsquo;s review — not
+            standard template drafted for the Institute&rsquo;s review, not
             legal advice, and not final until the Institute (or its counsel)
             confirms it. This should be reviewed by qualified legal counsel
             before final publication.
@@ -257,7 +257,7 @@ export default function TermsPage() {
             archive are made available for academic reading, citation, and
             non-commercial educational use. Any reproduction, redistribution, or
             adaptation beyond fair use or equivalent exceptions under applicable
-            copyright law requires the consent of the relevant copyright holder —
+            copyright law requires the consent of the relevant copyright holder,
             which, for Institute-published work, is ordinarily the author.
           </p>
         </Reveal>
@@ -267,7 +267,7 @@ export default function TermsPage() {
           <p className="mt-3 text-ink-muted">
             Citation of the Institute&rsquo;s published scholarship in academic
             work is permitted and encouraged, subject to standard scholarly
-            citation practice — acknowledging the author, the Institute, and the
+            citation practice: acknowledging the author, the Institute, and the
             date of publication. Quotation for the purposes of commentary,
             criticism, or review is likewise permitted within the usual academic
             conventions.

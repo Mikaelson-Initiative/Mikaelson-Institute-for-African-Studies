@@ -97,12 +97,12 @@ const whatWeLookFor = [
   {
     quality: "Rigorous.",
     description:
-      "It takes evidence, methodology, sources, and argument seriously — and is honest about the limits of its own claims.",
+      "It takes evidence, methodology, sources, and argument seriously, and is honest about the limits of its own claims.",
   },
   {
     quality: "Relevant.",
     description:
-      "It speaks to questions that matter — to scholars, to communities, to the study of Africa.",
+      "It speaks to questions that matter: to scholars, to communities, to the study of Africa.",
   },
   {
     quality: "Thoughtful.",
@@ -141,7 +141,7 @@ export default function CallForPapersPage() {
           <PlaceholderNotice>
             the current cycle&rsquo;s deadline, word-count limits, citation
             format, and specific submission guidelines go here once confirmed by
-            the Institute — not invented for this build.
+            the Institute, not invented for this build.
           </PlaceholderNotice>
 
           <div className="mt-6 rounded-lg border border-dashed border-ink/20 bg-paper p-8 text-center">
@@ -290,7 +290,7 @@ export default function CallForPapersPage() {
           <SectionLabel>How to Submit</SectionLabel>
           <p className="mt-3 text-ink-muted">
             Submit your abstract and a PDF or DOCX of your paper through the
-            submission form. No account is required — you will receive a
+            submission form. No account is required: you will receive a
             confirmation email with a link to track your submission&rsquo;s
             status.
           </p>
