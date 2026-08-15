@@ -295,7 +295,7 @@ export default function CallForPapersPage() {
             status.
           </p>
           <div className="mt-6">
-            <Button href="/submit">Submit a Paper</Button>
+            <Button href="/waitlist">Join Waitlist</Button>
           </div>
         </Reveal>
       </div>

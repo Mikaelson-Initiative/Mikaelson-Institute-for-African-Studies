@@ -46,7 +46,7 @@ export const footerNavLinks: NavLink[] = [
   ...navGroups.flatMap((group) => group.links),
   // Submit a Paper was removed from the Research Community dropdown above
   // (2026-08-14) but kept here — the footer link wasn't asked to change.
-  { href: "/submit", label: "Submit a Paper" },
+  { href: "/waitlist", label: "Join Waitlist" },
   { href: "/library", label: "Library" },
   { href: "/contact", label: "Contact" },
   { href: "/privacy", label: "Privacy Policy" },

@@ -3,6 +3,7 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/motion/reveal";
 import { ArrowRight, BookOpen, Users, Mic, Lightbulb, GraduationCap, UsersRound, LibraryBig, Music } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Ubuntu | Community Cohort",
@@ -80,6 +81,21 @@ export default function UbuntuPage() {
             <p className="mt-8 text-lg text-ink-muted">
               At Mikaelson Institute for African Studies, Ubuntu informs how we understand intellectual life. Knowledge does not exist only for the person who discovers it, it must strengthen the community.
             </p>
+            <p className="mt-6 text-lg text-ink-muted">
+              In practice, Ubuntu is the Institute&rsquo;s free, cohort-based
+              learning program in African history: no tuition, no application
+              fee. Our goal is to reach 10,000,000 students and researchers
+              across the continent and its diaspora, building a shared,
+              rigorous foundation in African history and thought.
+            </p>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+              <Button href="/signup" variant="primary">
+                Join Ubuntu
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Button>
+            </div>
           </Reveal>
         </div>
 

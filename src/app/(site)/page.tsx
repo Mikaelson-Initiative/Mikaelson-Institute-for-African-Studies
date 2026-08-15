@@ -25,7 +25,7 @@ export default function HomePage() {
               </SectionLabel>
             </StaggerItem>
             <StaggerItem>
-              <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight sm:text-6xl">
+              <h1 className="mt-4 font-display text-5xl font-semibold tracking-tight sm:text-6xl">
                 African scholarship on{" "}
                 <RotatingWord words={heroConcernWords} className="text-turquoise" />.
               </h1>
@@ -36,6 +36,15 @@ export default function HomePage() {
                 academic research institute, publishing scholarship in
                 history and decolonization, society and politics, arts and
                 culture, and religion and philosophy.
+              </p>
+            </StaggerItem>
+            <StaggerItem>
+              <p className="mx-auto mt-4 max-w-2xl text-sm text-paper/70">
+                Ubuntu is the Institute&rsquo;s free, cohort-based learning
+                program in African history: no tuition, no application fee.
+                Our goal is to reach 10,000,000 students and researchers
+                across the continent and its diaspora, building a shared,
+                rigorous foundation in African history and thought.
               </p>
             </StaggerItem>
             <StaggerItem>
@@ -57,13 +66,21 @@ export default function HomePage() {
         <Reveal>
           <SectionLabel className="mb-4">About</SectionLabel>
           <h2 className="font-display text-2xl font-semibold text-ink sm:text-3xl">
-            A credible, independent research institute.
+            Africa, studied as one connected field.
           </h2>
           <p className="mt-4 text-base text-ink-muted sm:text-lg">
-            MIAS is a new initiative of the Mikaelson Community Development
-            and Tech Initiative, built to stand on its own as an academic
-            body, a home for rigorous, peer-reviewed scholarship on Africa,
-            written for scholars, universities, and the public alike.
+            MIAS is the research body of the Mikaelson Community Development
+            and Tech Initiative, built to stand on its own as a credible
+            academic initiative. We study the continent across five areas,
+            history and decolonization, society and politics, arts and
+            culture, religion and philosophy, and the sciences and
+            metaphysics, treated as one continuous record, not separate
+            disciplines.
+          </p>
+          <p className="mt-4 text-base text-ink-muted sm:text-lg">
+            Our editorial board is forming now, and Ubuntu, our first cohort
+            program, is underway. If you&rsquo;re a scholar, researcher, or
+            educator working in any of these areas, we want to hear from you.
           </p>
           <div className="mt-6">
             <Button href="/about" variant="ghost">
@@ -79,7 +96,7 @@ export default function HomePage() {
           <ContainerScroll
             titleComponent={
               <>
-                <SectionLabel className="justify-center">Four focus areas</SectionLabel>
+                <SectionLabel className="justify-center">Five focus areas</SectionLabel>
                 <h2 className="mt-4 font-display text-2xl font-semibold text-ink sm:text-3xl">
                   Research Focus Areas
                 </h2>
@@ -151,18 +168,17 @@ export default function HomePage() {
               Call for Papers
             </SectionLabel>
             <h2 className="font-display text-2xl font-semibold sm:text-3xl">
-              Call for Papers is open.
+              Calls for papers coming soon.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-paper/80">
-              We welcome submissions from scholars and researchers across all
-              four focus areas.
+              Join waitlist to be first to be reached when calls for papers are opened.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button href="/call-for-papers" variant="primary">
                 View Guidelines
               </Button>
-              <Button href="/submit" variant="ghost-inverse">
-                Submit a Paper
+              <Button href="/waitlist" variant="ghost-inverse">
+                Join Waitlist
               </Button>
             </div>
           </Reveal>
