@@ -1,18 +1,26 @@
 "use client";
 
-import type { ContactMessage, Submission, CohortApplication, TeamMember, Partner, BookRecommendation, GalleryItem, LibraryContribution } from "@prisma/client";
+import type { ContactMessage, Submission, CohortApplication, TeamMember, Partner, BookRecommendation, GalleryItem, LibraryContribution, TeamApplication } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { signOut } from "next-auth/react";
-import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake } from "lucide-react";
+import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
 
 type ApplicationWithUser = CohortApplication & { user: { name: string | null; email: string | null } };
 
-type Section = "overview" | "messages" | "submissions" | "applications" | "team" | "partners" | "books" | "gallery" | "library-support";
+type Section = "overview" | "messages" | "submissions" | "applications" | "team" | "partners" | "books" | "gallery" | "library-support" | "team-applications";
 
 const SUBMISSION_STATUSES = ["submitted", "in_review", "revisions_requested", "accepted", "rejected", "published"] as const;
 const CONTRIBUTION_STATUSES = ["pending", "completed", "failed"] as const;
+
+const ROLE_INTEREST_LABELS: Record<string, string> = {
+  "research-editorial": "Research & Editorial",
+  "design-technology": "Design & Technology",
+  "community-outreach": "Community & Outreach",
+  "operations-admin": "Operations & Administration",
+  other: "Other",
+};
 
 export function AdminDashboardClient({
   contactMessages,
@@ -23,6 +31,7 @@ export function AdminDashboardClient({
   books,
   galleryItems,
   libraryContributions,
+  teamApplications,
 }: {
   contactMessages: ContactMessage[];
   submissions: Submission[];
@@ -32,6 +41,7 @@ export function AdminDashboardClient({
   books: BookRecommendation[];
   galleryItems: GalleryItem[];
   libraryContributions: LibraryContribution[];
+  teamApplications: TeamApplication[];
 }) {
   const [section, setSection] = useState<Section>("overview");
   const [messages, setMessages] = useState(contactMessages);
@@ -43,6 +53,7 @@ export function AdminDashboardClient({
   const [bookList, setBookList] = useState(books);
   const [gallery, setGallery] = useState(galleryItems);
   const [contributions, setContributions] = useState(libraryContributions);
+  const [teamApps, setTeamApps] = useState(teamApplications);
 
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [showPartnerForm, setShowPartnerForm] = useState(false);
@@ -100,6 +111,15 @@ export function AdminDashboardClient({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reviewed }),
     }).catch(() => setApps((prev) => prev.map((a) => (a.id === id ? { ...a, reviewed: !reviewed } : a))));
+  };
+
+  const toggleTeamAppReviewed = async (id: string, reviewed: boolean) => {
+    setTeamApps((prev) => prev.map((a) => (a.id === id ? { ...a, reviewed } : a)));
+    await fetch(`/api/admin/team-applications/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reviewed }),
+    }).catch(() => setTeamApps((prev) => prev.map((a) => (a.id === id ? { ...a, reviewed: !reviewed } : a))));
   };
 
   // --- Team CRUD ---
@@ -249,6 +269,7 @@ export function AdminDashboardClient({
                 <MetricCard title="Library Books" value={bookList.length} icon={<Book className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("books")} />
                 <MetricCard title="Art Gallery" value={gallery.length} icon={<Camera className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("gallery")} />
                 <MetricCard title="Library Support" value={contributions.length} subtitle={`${contributions.filter(c => c.status === "pending").length} pending`} icon={<HeartHandshake className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("library-support")} />
+                <MetricCard title="Team Applications" value={teamApps.length} subtitle={`${teamApps.filter(a => !a.reviewed).length} unreviewed`} icon={<UserPlus className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("team-applications")} />
               </div>
             </motion.div>
           )}
@@ -641,6 +662,51 @@ export function AdminDashboardClient({
             </motion.div>
           )}
 
+          {section === "team-applications" && (
+            <motion.div key="team-applications" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+              <h2 className="mb-4 font-display text-lg font-semibold text-ink">
+                Team Applications <span className="text-ink-muted">({teamApps.length})</span>
+              </h2>
+              <div className="space-y-3">
+                {teamApps.length === 0 && <EmptyState label="No team applications yet." />}
+                {teamApps.map((a) => (
+                  <div key={a.id} className={`rounded-xl border p-4 ${a.reviewed ? "border-ink/10 bg-paper/60 opacity-60" : "border-ink/10 bg-paper"}`}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-ink">{a.name} <span className="font-normal text-ink-muted">, {a.email}</span></p>
+                        <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                          {a.phoneNumber} · {a.location} · {a.roleInterest === "other" && a.customRole ? a.customRole : ROLE_INTEREST_LABELS[a.roleInterest] ?? a.roleInterest}
+                        </p>
+                        <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                          {a.availability} · {a.hoursPerWeek} hrs/week · {a.volunteeredBefore ? "Volunteered before" : "First-time volunteer"}
+                        </p>
+                        <p className="mt-2 text-sm text-ink"><strong>Experience:</strong> {a.experience}</p>
+                        <p className="mt-1 text-sm text-ink"><strong>Motivation:</strong> {a.motivation}</p>
+                        <div className="mt-2 flex flex-wrap gap-3">
+                          <a href={a.linkedinUrl} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1 text-xs font-semibold text-teal-deep hover:underline">
+                            LinkedIn <ExternalLink aria-hidden="true" className="h-3 w-3" />
+                          </a>
+                          <a href={a.cvUrl} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1 text-xs font-semibold text-teal-deep hover:underline">
+                            {a.cvFileName} <ExternalLink aria-hidden="true" className="h-3 w-3" />
+                          </a>
+                        </div>
+                        <p className="mt-2 font-mono-ledger text-xs text-ink/40">{new Date(a.createdAt).toLocaleString()}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleTeamAppReviewed(a.id, !a.reviewed)}
+                        className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${a.reviewed ? "border-teal-deep bg-teal-deep/10 text-teal-deep" : "border-ink/20 text-ink-muted hover:border-teal-deep hover:text-teal-deep"}`}
+                      >
+                        <Check aria-hidden="true" className="h-3.5 w-3.5" />
+                        {a.reviewed ? "Reviewed" : "Mark reviewed"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
         </AnimatePresence>
       </main>
 
@@ -698,6 +764,12 @@ export function AdminDashboardClient({
             <DockLabel>Library Support{contributions.filter((c) => c.status === "pending").length > 0 ? ` (${contributions.filter((c) => c.status === "pending").length})` : ""}</DockLabel>
             <DockIcon>
               <HeartHandshake className="h-full w-full text-ink-muted" />
+            </DockIcon>
+          </DockItem>
+          <DockItem className="aspect-square rounded-full bg-white" onClick={() => setSection("team-applications")} aria-pressed={section === "team-applications"}>
+            <DockLabel>Team Applications{teamApps.filter((a) => !a.reviewed).length > 0 ? ` (${teamApps.filter((a) => !a.reviewed).length})` : ""}</DockLabel>
+            <DockIcon>
+              <UserPlus className="h-full w-full text-ink-muted" />
             </DockIcon>
           </DockItem>
         </Dock>

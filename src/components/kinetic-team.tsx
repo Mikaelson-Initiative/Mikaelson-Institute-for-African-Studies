@@ -330,10 +330,16 @@ export function KineticTeam({ categories }: { categories: TeamCategory[] }) {
               editor, or practitioner whose work engages seriously with Africa,
               we want to hear from you.
             </p>
-            <div className="mt-6">
+            <p className="mt-4 max-w-lg text-base font-medium text-ink">
+              Does our mission resonate with you and you want to build with us? Join our team.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-4">
               <Button href="/contact" variant="primary">
                 Get in Touch
-                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Button>
+              <Button href="/join-team" variant="ghost">
+                Join Our Team
+                <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </motion.div>

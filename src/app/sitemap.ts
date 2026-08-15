@@ -9,6 +9,7 @@ const routes = [
   "/call-for-papers",
   "/contact",
   "/framework",
+  "/join-team",
   "/library",
   "/library/archive",
   "/library/books",

@@ -212,3 +212,29 @@ model LibraryContribution {
   @@index([status])
   @@index([createdAt])
 }
+
+// Backs /join-team. A general volunteer/team application, replacing the
+// external Google Form the "Join Our Team" buttons (About, Team pages)
+// used to point to.
+model TeamApplication {
+  id                String   @id @default(cuid())
+  name              String
+  email             String
+  phoneNumber       String
+  location          String
+  roleInterest      String
+  customRole        String?
+  availability      String
+  hoursPerWeek      Int
+  volunteeredBefore Boolean
+  experience        String
+  linkedinUrl       String
+  cvUrl             String
+  cvFileName        String
+  motivation        String
+  reviewed          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  @@index([reviewed])
+  @@index([createdAt])
+}

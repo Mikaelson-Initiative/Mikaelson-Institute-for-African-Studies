@@ -3,6 +3,8 @@ import { Reveal } from "@/components/motion/reveal";
 import { SectionLabel } from "@/components/section-label";
 import { ScrollSequence } from "@/components/scroll-sequence";
 import { PageHero } from "@/components/page-hero";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Mission",
@@ -72,6 +74,32 @@ export default function AboutPage() {
               institute needs is separate from, though connected to, the
               Initiative that founded it.
             </p>
+          </Reveal>
+
+          <Reveal delay={0.1}>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2">
+              <div className="rounded-2xl border border-ink/10 bg-paper p-8">
+                <p className="text-lg font-medium text-ink">
+                  Interested in what we do and you&rsquo;d like to be involved? Contact us.
+                </p>
+                <div className="mt-8">
+                  <Button href="/contact" variant="primary">
+                    Contact Us
+                  </Button>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-ink/10 bg-paper p-8">
+                <p className="text-lg font-medium text-ink">
+                  Does our mission resonate with you and you want to build with us? Join our team.
+                </p>
+                <div className="mt-8">
+                  <Button href="/join-team" variant="ghost">
+                    Join Our Team
+                    <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </Reveal>
         </div>
       </ScrollSequence>
