@@ -6,7 +6,6 @@ import { Reveal } from "@/components/motion/reveal";
 import {
   contributionTiers,
   formatNaira,
-  PAYSTACK_LINK,
 } from "@/lib/library-contribution-tiers";
 
 type Selection = { tier: string | null; amount: number };
@@ -69,12 +68,15 @@ export function ContributionSection() {
           tier: selection.tier ?? undefined,
         }),
       });
-      if (!response.ok) {
-        setError("Couldn't record your contribution, try again.");
+      const body = await response.json();
+      if (!response.ok || !body.authorizationUrl) {
+        setError("Couldn't start the payment, try again.");
         return;
       }
-      window.open(PAYSTACK_LINK, "_blank", "noopener,noreferrer");
-      closeModal();
+      // Full-page redirect, not window.open — a popup opened after an
+      // awaited fetch falls outside the original click's "user gesture"
+      // window and gets silently blocked by most browsers.
+      window.location.href = body.authorizationUrl;
     } catch {
       setError("Couldn't reach the server. Check your connection and try again.");
     } finally {

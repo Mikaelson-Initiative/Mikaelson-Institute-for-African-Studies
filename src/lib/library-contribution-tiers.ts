@@ -10,8 +10,6 @@ import { BookHeart, BookOpen, GraduationCap, Library, Star, Medal } from "lucide
 export const COST_PER_BOOK_NAIRA = 20_000;
 export const TARGET_BOOKS = 1_000_000;
 
-export const PAYSTACK_LINK = "https://paystack.com/pay/mias-library";
-
 export type ContributionTier = {
   tier: string;
   amount: number;
