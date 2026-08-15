@@ -26,14 +26,21 @@ export async function sendEmail(params: { to: string; subject: string; html: str
     return;
   }
 
-  const { error } = await resend.emails.send({
-    from: `Mikaelson Institute for African Studies <${FROM_EMAIL}>`,
-    to: params.to,
-    subject: params.subject,
-    html: params.html,
-  });
+  try {
+    const { error } = await resend.emails.send({
+      from: `Mikaelson Institute for African Studies <${FROM_EMAIL}>`,
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
+    });
 
-  if (error) {
+    if (error) {
+      console.error(`[email] Failed to send "${params.subject}" to ${params.to}:`, error);
+    }
+  } catch (error) {
+    // The SDK itself can throw (network failure, malformed response) rather
+    // than resolve with { error } — must still not propagate, per the note
+    // above.
     console.error(`[email] Failed to send "${params.subject}" to ${params.to}:`, error);
   }
 }

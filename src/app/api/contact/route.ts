@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { notificationRecipient, sendEmail } from "@/lib/email";
+import { escapeHtml, renderEmail } from "@/lib/email-template";
 import { prisma } from "@/lib/prisma";
 import { contactSchema } from "@/lib/validation/contact";
 
@@ -19,7 +20,14 @@ export async function POST(request: Request) {
   await sendEmail({
     to: notificationRecipient(),
     subject: `New contact message from ${message.name}`,
-    html: `<p><strong>From:</strong> ${message.name} (${message.email})</p><p>${message.message}</p>`,
+    html: renderEmail({
+      preheader: `${message.name} sent a message through the contact form.`,
+      heading: `New contact message from ${message.name}`,
+      sections: [
+        { type: "details", rows: [{ label: "From", value: escapeHtml(`${message.name} (${message.email})`) }] },
+        { type: "paragraph", text: escapeHtml(message.message).replace(/\n/g, "<br>") },
+      ],
+    }),
   });
 
   return NextResponse.json({ id: message.id }, { status: 201 });

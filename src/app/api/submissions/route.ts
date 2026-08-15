@@ -4,6 +4,7 @@ import path from "node:path";
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
+import { escapeHtml, renderEmail } from "@/lib/email-template";
 import { prisma } from "@/lib/prisma";
 import {
   ACCEPTED_FILE_TYPES,
@@ -98,7 +99,14 @@ export async function POST(request: Request) {
   await sendEmail({
     to: submission.authorEmail,
     subject: "We received your submission",
-    html: `<p>Thank you for submitting "${submission.title}" to Mikaelson Institute for African Studies.</p><p>Your tracking reference is <strong>${submission.id}</strong>.</p>`,
+    html: renderEmail({
+      preheader: `Your submission "${submission.title}" has been received.`,
+      heading: "We received your submission",
+      sections: [
+        { type: "paragraph", text: `Thank you for submitting "${escapeHtml(submission.title)}" to Mikaelson Institute for African Studies.` },
+        { type: "details", rows: [{ label: "Tracking reference", value: submission.id }] },
+      ],
+    }),
   });
 
   return NextResponse.json({ id: submission.id }, { status: 201 });

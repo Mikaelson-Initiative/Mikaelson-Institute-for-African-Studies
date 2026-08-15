@@ -4,6 +4,7 @@ import path from "node:path";
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { notificationRecipient, sendEmail } from "@/lib/email";
+import { escapeHtml, renderEmail, safeHref } from "@/lib/email-template";
 import { prisma } from "@/lib/prisma";
 import {
   ACCEPTED_CV_FILE_TYPES,
@@ -127,17 +128,45 @@ export async function POST(request: Request) {
   await sendEmail({
     to: email,
     subject: "We've received your volunteer application",
-    html: `<p>Hi ${name},</p><p>Thank you for applying to volunteer with the Mikaelson Institute for African Studies. We've received your application and will be in touch.</p>`,
+    html: renderEmail({
+      preheader: "We've received your volunteer application and will be in touch.",
+      heading: "We've received your volunteer application",
+      sections: [
+        { type: "paragraph", text: `Hi ${escapeHtml(name)},` },
+        { type: "paragraph", text: "Thank you for applying to volunteer with the Mikaelson Institute for African Studies. We've received your application and will be in touch." },
+      ],
+    }),
   });
 
   const roleLabel = roleInterest === "other" && customRole
     ? customRole
     : ROLE_INTEREST_LABELS[roleInterest] ?? roleInterest;
 
+  const linkedinHref = safeHref(linkedinUrl);
+  const cvHref = safeHref(cvUrl);
+
   await sendEmail({
     to: notificationRecipient(),
     subject: `New volunteer application: ${name}`,
-    html: `<p><strong>${name}</strong> (${email}) applied to volunteer.</p><p><strong>Phone:</strong> ${phoneNumber} &middot; <strong>City:</strong> ${location}</p><p><strong>Area of interest:</strong> ${roleLabel}</p><p><strong>Availability:</strong> ${availability} (${hoursPerWeek} hrs/week)</p><p><strong>Volunteered before:</strong> ${volunteeredBefore ? "Yes" : "No"}</p><p><strong>LinkedIn:</strong> ${linkedinUrl}</p><p><strong>CV:</strong> <a href="${cvUrl}">${cv.name}</a></p><p><strong>Experience:</strong> ${experience}</p><p><strong>Motivation:</strong> ${motivation}</p>`,
+    html: renderEmail({
+      preheader: `${name} applied to volunteer.`,
+      heading: `New volunteer application: ${name}`,
+      sections: [
+        { type: "paragraph", text: `<strong>${escapeHtml(name)}</strong> (${escapeHtml(email)}) applied to volunteer.` },
+        { type: "details", rows: [
+          { label: "Phone", value: escapeHtml(phoneNumber) },
+          { label: "City", value: escapeHtml(location) },
+          { label: "Area of interest", value: escapeHtml(roleLabel) },
+          { label: "Availability", value: `${escapeHtml(availability)} (${hoursPerWeek} hrs/week)` },
+          { label: "Volunteered before", value: volunteeredBefore ? "Yes" : "No" },
+          { label: "LinkedIn", value: linkedinHref ? `<a href="${linkedinHref}">${escapeHtml(linkedinUrl)}</a>` : escapeHtml(linkedinUrl) },
+          { label: "CV", value: cvHref ? `<a href="${cvHref}">${escapeHtml(cv.name)}</a>` : escapeHtml(cv.name) },
+        ] },
+        { type: "divider" },
+        { type: "paragraph", text: `<strong>Experience:</strong> ${escapeHtml(experience)}` },
+        { type: "paragraph", text: `<strong>Motivation:</strong> ${escapeHtml(motivation)}` },
+      ],
+    }),
   });
 
   return NextResponse.json({ id: application.id }, { status: 201 });

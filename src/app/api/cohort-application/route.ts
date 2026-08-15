@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { notificationRecipient, sendEmail } from "@/lib/email";
+import { escapeHtml, renderEmail } from "@/lib/email-template";
 import { prisma } from "@/lib/prisma";
 import { cohortApplicationSchema } from "@/lib/validation/auth";
 
@@ -79,13 +80,38 @@ export async function POST(request: Request) {
   await sendEmail({
     to: session.user.email,
     subject: "We've received your Cohort 01 application",
-    html: `<p>Hi ${applicantName},</p><p>Thank you for applying to Mikaelson Institute's Cohort 01. We've received your application and will be in touch.</p>`,
+    html: renderEmail({
+      preheader: "We've received your Cohort 01 application and will be in touch.",
+      heading: "We've received your Cohort 01 application",
+      sections: [
+        { type: "paragraph", text: `Hi ${escapeHtml(applicantName)},` },
+        { type: "paragraph", text: "Thank you for applying to Mikaelson Institute's Cohort 01. We've received your application and will be in touch." },
+      ],
+    }),
   });
 
   await sendEmail({
     to: notificationRecipient(),
     subject: `New Cohort 01 application: ${applicantName}`,
-    html: `<p><strong>${applicantName}</strong> (${session.user.email}) applied to Cohort 01.</p><p><strong>Phone:</strong> ${phoneNumber} · <strong>Gender:</strong> ${gender} · <strong>Nationality:</strong> ${nationality} · <strong>State of origin:</strong> ${stateOfOrigin}</p>${additionalInfo ? `<p><strong>Additional info:</strong> ${additionalInfo}</p>` : ""}<p><strong>First time studying African history:</strong> ${firstTimeStudying}</p><p><strong>Primary goal:</strong> ${primaryGoal}</p><p><strong>About:</strong> ${about}</p><p><strong>Motivation:</strong> ${motivation}</p>`,
+    html: renderEmail({
+      preheader: `${applicantName} applied to Cohort 01.`,
+      heading: `New Cohort 01 application: ${applicantName}`,
+      sections: [
+        { type: "paragraph", text: `<strong>${escapeHtml(applicantName)}</strong> (${escapeHtml(session.user.email)}) applied to Cohort 01.` },
+        { type: "details", rows: [
+          { label: "Phone", value: escapeHtml(phoneNumber) },
+          { label: "Gender", value: escapeHtml(gender) },
+          { label: "Nationality", value: escapeHtml(nationality) },
+          { label: "State of origin", value: escapeHtml(stateOfOrigin) },
+          ...(additionalInfo ? [{ label: "Additional info", value: escapeHtml(additionalInfo) }] : []),
+          { label: "First time studying African history", value: escapeHtml(firstTimeStudying) },
+          { label: "Primary goal", value: escapeHtml(primaryGoal) },
+        ] },
+        { type: "divider" },
+        { type: "paragraph", text: `<strong>About:</strong> ${escapeHtml(about)}` },
+        { type: "paragraph", text: `<strong>Motivation:</strong> ${escapeHtml(motivation)}` },
+      ],
+    }),
   });
 
   return NextResponse.json({ ok: true }, { status: 201 });

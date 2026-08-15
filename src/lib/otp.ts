@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
+import { renderEmail } from "@/lib/email-template";
 
 const CODE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const RESEND_COOLDOWN_MS = 60 * 1000; // 1 minute per email, guards the Resend free-tier daily cap
@@ -35,7 +36,15 @@ export async function sendLoginCode(email: string): Promise<SendCodeResult> {
   await sendEmail({
     to: email,
     subject: `${code} is your Mikaelson Institute sign-in code`,
-    html: `<p>Your sign-in code is:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px;">${code}</p><p>This code expires in 10 minutes. If you didn't request this, you can ignore this email.</p>`,
+    html: renderEmail({
+      preheader: `${code} is your sign-in code. It expires in 10 minutes.`,
+      heading: "Your sign-in code",
+      sections: [
+        { type: "paragraph", text: "Your sign-in code is:" },
+        { type: "code", text: code },
+        { type: "paragraph", text: "This code expires in 10 minutes. If you didn't request this, you can ignore this email." },
+      ],
+    }),
   });
 
   return { ok: true };
