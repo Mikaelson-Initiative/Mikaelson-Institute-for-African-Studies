@@ -6,7 +6,7 @@ import { BreadcrumbProvider } from "@/components/learn/breadcrumb-context";
 
 export default async function LearnProtectedLayout({ children }: { children: React.ReactNode }) {
   const { session, application, error } = await requireCohortAccess();
-  if (error || !session?.user?.id || !application) redirect("/learn/login?denied=1");
+  if (error || !session?.user?.id || !application) redirect("/ubuntu/login?denied=1");
 
   const modules = application.cohort!.modules;
   const completedStepIds = await getCompletedStepIds(session.user.id, modules.map((m) => m.id));

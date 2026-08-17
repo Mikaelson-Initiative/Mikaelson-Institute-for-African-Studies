@@ -7,7 +7,7 @@ import { sendCodeSchema } from "@/lib/validation/auth";
 // flow, and deliberately left open to any email there) but gated: a code is
 // only sent if this email belongs to a User with an admitted
 // CohortApplication. Checked here (pre-session) and again by
-// requireCohortAccess() on every /learn/(protected) page load — never
+// requireCohortAccess() on every /ubuntu/(protected) page load — never
 // trusted from the session alone, since admission can be revoked after a
 // code was already sent.
 export async function POST(request: Request) {

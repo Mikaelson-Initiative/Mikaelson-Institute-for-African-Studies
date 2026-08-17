@@ -18,7 +18,7 @@ const profileSchema = z.object({
 export async function updateProfile(formData: FormData) {
   const { session, application, error } = await requireCohortAccess();
   if (error || !session?.user?.id || !application) {
-    redirect("/learn/login?denied=1");
+    redirect("/ubuntu/login?denied=1");
   }
 
   const fields = profileSchema.safeParse({
@@ -30,7 +30,7 @@ export async function updateProfile(formData: FormData) {
   });
 
   if (!fields.success) {
-    redirect("/learn/profile?error=1");
+    redirect("/ubuntu/profile?error=1");
   }
 
   const { name, phoneNumber, gender, nationality, stateOfOrigin } = fields.data;
@@ -41,6 +41,6 @@ export async function updateProfile(formData: FormData) {
     data: { phoneNumber, gender, nationality, stateOfOrigin },
   });
 
-  revalidatePath("/learn/profile");
-  redirect("/learn/profile?saved=1");
+  revalidatePath("/ubuntu/profile");
+  redirect("/ubuntu/profile?saved=1");
 }

@@ -7,10 +7,10 @@ import { CircularProgress } from "@/components/ui/circular-progress";
 import { useBreadcrumbTrail } from "@/components/learn/breadcrumb-context";
 
 const STATIC_LABELS: Record<string, string> = {
-  "/learn/space": "Space",
-  "/learn/modules": "Modules",
-  "/learn/discover": "Discover",
-  "/learn/profile": "Profile",
+  "/ubuntu/space": "Space",
+  "/ubuntu/modules": "Modules",
+  "/ubuntu/discover": "Discover",
+  "/ubuntu/profile": "Profile",
 };
 
 export function LearnTopNav({
@@ -32,7 +32,7 @@ export function LearnTopNav({
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
-            onClick={() => router.push("/learn/space")}
+            onClick={() => router.push("/ubuntu/space")}
             className="shrink-0 font-display text-sm font-semibold text-ink transition-colors hover:text-teal-deep"
           >
             Mikaelson Institute <span className="text-ink-muted">/ Learn</span>

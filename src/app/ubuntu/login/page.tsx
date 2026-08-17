@@ -26,7 +26,7 @@ function LearnLoginForm() {
     setError(null);
     setPending(true);
     try {
-      const response = await fetch("/api/learn/send-code", {
+      const response = await fetch("/api/ubuntu/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -55,7 +55,7 @@ function LearnLoginForm() {
         setError("That code is incorrect or expired.");
         return;
       }
-      router.push("/learn/space");
+      router.push("/ubuntu/space");
     } finally {
       setPending(false);
     }

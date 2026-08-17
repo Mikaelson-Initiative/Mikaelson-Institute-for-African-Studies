@@ -27,7 +27,7 @@ export default async function LearnProfilePage({
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
   const { session, application, error } = await requireCohortAccess();
-  if (error || !session?.user || !application) redirect("/learn/login?denied=1");
+  if (error || !session?.user || !application) redirect("/ubuntu/login?denied=1");
 
   const { saved, error: hasError } = await searchParams;
 

@@ -20,7 +20,7 @@ const routes = [
   "/submit",
   "/team",
   "/terms",
-  "/ubuntu",
+  "/ubuntu-program",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

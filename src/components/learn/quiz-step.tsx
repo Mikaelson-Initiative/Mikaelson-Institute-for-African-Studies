@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { submitQuiz, type SubmitQuizState } from "@/app/learn/(protected)/modules/[id]/actions";
+import { submitQuiz, type SubmitQuizState } from "@/app/ubuntu/(protected)/modules/[id]/actions";
 import type { SanitizedQuizData } from "@/lib/quiz";
 
 export function QuizStep({

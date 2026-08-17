@@ -18,7 +18,7 @@ function formatDate(date: Date) {
 
 export default async function LearnDiscoverPage() {
   const { application, error } = await requireCohortAccess();
-  if (error || !application) redirect("/learn/login?denied=1");
+  if (error || !application) redirect("/ubuntu/login?denied=1");
 
   const now = new Date();
 

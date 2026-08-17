@@ -20,7 +20,7 @@ function formatDate(date: Date) {
 
 export default async function LearnModulesPage() {
   const { session, application, error } = await requireCohortAccess();
-  if (error || !session?.user?.id || !application) redirect("/learn/login?denied=1");
+  if (error || !session?.user?.id || !application) redirect("/ubuntu/login?denied=1");
 
   const cohort = application.cohort!;
   const modules = cohort.modules;
@@ -136,7 +136,7 @@ export default async function LearnModulesPage() {
               {locked ? (
                 <div aria-disabled="true">{card}</div>
               ) : (
-                <Link href={`/learn/modules/${moduleItem.id}`} className="block">
+                <Link href={`/ubuntu/modules/${moduleItem.id}`} className="block">
                   {card}
                 </Link>
               )}

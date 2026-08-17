@@ -44,7 +44,7 @@ const EVENT_LABELS: Record<string, string> = {
 
 export default async function LearnSpacePage() {
   const { session, application, error } = await requireCohortAccess();
-  if (error || !session?.user?.id || !application) redirect("/learn/login?denied=1");
+  if (error || !session?.user?.id || !application) redirect("/ubuntu/login?denied=1");
 
   const cohort = application.cohort!;
   const modules = cohort.modules;
@@ -102,7 +102,7 @@ export default async function LearnSpacePage() {
             </p>
 
             <div className="mt-6">
-              <Button href="/learn/modules" variant="primary" className="w-full justify-center">
+              <Button href="/ubuntu/modules" variant="primary" className="w-full justify-center">
                 Go to Modules
               </Button>
             </div>

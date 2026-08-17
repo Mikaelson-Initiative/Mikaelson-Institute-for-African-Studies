@@ -22,7 +22,7 @@ export default async function LearnModulePage({
 }) {
   const { id } = await params;
   const { session, application, error } = await requireCohortAccess();
-  if (error || !session?.user?.id || !application) redirect("/learn/login?denied=1");
+  if (error || !session?.user?.id || !application) redirect("/ubuntu/login?denied=1");
 
   const learningModule = application.cohort!.modules.find((m) => m.id === id);
 

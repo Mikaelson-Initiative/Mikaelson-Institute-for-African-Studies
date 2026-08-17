@@ -9,7 +9,7 @@ import { gradeQuiz, type QuizData } from "@/lib/quiz";
 async function loadStepForAccessCheck(stepId: string) {
   const { session, application, error } = await requireCohortAccess();
   if (error || !session?.user?.id || !application) {
-    redirect("/learn/login?denied=1");
+    redirect("/ubuntu/login?denied=1");
   }
 
   const step = await prisma.moduleStep.findUnique({
@@ -18,7 +18,7 @@ async function loadStepForAccessCheck(stepId: string) {
   });
 
   if (!step || step.module.cohortId !== application.cohort!.id || step.module.unlockDate > new Date()) {
-    redirect("/learn/modules");
+    redirect("/ubuntu/modules");
   }
 
   return { userId: session.user.id, step };
@@ -41,9 +41,9 @@ export async function markStepComplete(stepId: string) {
     update: { completed: true, completedAt: new Date() },
   });
 
-  revalidatePath("/learn/space");
-  revalidatePath("/learn/modules");
-  revalidatePath(`/learn/modules/${step.moduleId}`);
+  revalidatePath("/ubuntu/space");
+  revalidatePath("/ubuntu/modules");
+  revalidatePath(`/ubuntu/modules/${step.moduleId}`);
 }
 
 export type SubmitQuizState = {
@@ -64,7 +64,7 @@ export async function submitQuiz(
   const { userId, step } = await loadStepForAccessCheck(stepId);
 
   if (step.type !== "quiz" || !step.quizData) {
-    redirect(`/learn/modules/${step.moduleId}`);
+    redirect(`/ubuntu/modules/${step.moduleId}`);
   }
 
   const quizData = step.quizData as unknown as QuizData;
@@ -82,9 +82,9 @@ export async function submitQuiz(
     update: { completed: true, completedAt: new Date(), score: result.score, answers },
   });
 
-  revalidatePath("/learn/space");
-  revalidatePath("/learn/modules");
-  revalidatePath(`/learn/modules/${step.moduleId}`);
+  revalidatePath("/ubuntu/space");
+  revalidatePath("/ubuntu/modules");
+  revalidatePath(`/ubuntu/modules/${step.moduleId}`);
 
   return { score: result.score, total: result.total, perQuestion: result.perQuestion, answers };
 }

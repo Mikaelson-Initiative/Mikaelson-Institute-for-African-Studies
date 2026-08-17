@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "African studies cohort",
     "African studies community learning",
   ],
-  alternates: { canonical: "/ubuntu" },
+  alternates: { canonical: "/ubuntu-program" },
 };
 
 const programmes = [

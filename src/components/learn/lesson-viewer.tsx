@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StepContent, type StepContentData } from "@/components/learn/step-content";
-import { markStepComplete } from "@/app/learn/(protected)/modules/[id]/actions";
+import { markStepComplete } from "@/app/ubuntu/(protected)/modules/[id]/actions";
 
 const TYPE_ICONS = {
   video: Video,
@@ -79,7 +79,7 @@ export function LessonViewer({
       return;
     }
     if (nextModule?.unlocked) {
-      router.push(`/learn/modules/${nextModule.id}`);
+      router.push(`/ubuntu/modules/${nextModule.id}`);
       return;
     }
     setReachedEnd(true);
@@ -153,7 +153,7 @@ export function LessonViewer({
 
       <div className="min-w-0">
         <div className="mb-4">
-          <Button href="/learn/modules" variant="ghost" className="text-sm -ml-4">
+          <Button href="/ubuntu/modules" variant="ghost" className="text-sm -ml-4">
             <ArrowLeft aria-hidden="true" className="h-4 w-4" />
             Back to Modules
           </Button>
