@@ -15,7 +15,7 @@ export function ComingSoonNotice({ children }: { children: ReactNode }) {
       </p>
       <p className="mx-auto mt-3 max-w-xl text-base text-ink-muted">{children}</p>
       <div className="mt-6 flex justify-center">
-        <Button href="https://learn.mikaelsoninitiative.org/ubuntu">Join Ubuntu</Button>
+        <Button href="/ubuntu-program">Join Ubuntu</Button>
       </div>
     </div>
   );
