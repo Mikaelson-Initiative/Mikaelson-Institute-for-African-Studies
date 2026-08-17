@@ -104,6 +104,14 @@ model User {
   accounts          Account[]
   sessions          Session[]
   cohortApplication CohortApplication?
+  stepProgress      StepProgress[]
+}
+
+enum CohortApplicationStatus {
+  pending
+  admitted
+  rejected
+  waitlisted
 }
 
 // A Cohort 01 application, not just a profile — see /signup's post-signin
@@ -132,7 +140,137 @@ model CohortApplication {
   reviewed          Boolean  @default(false)
   createdAt         DateTime @default(now())
 
+  // Added for the /learn LMS — distinct from `reviewed` ("staff looked at
+  // it"), this is the actual admission decision that gates LMS login.
+  status   CohortApplicationStatus @default(pending)
+  cohortId String?
+  cohort   Cohort?                 @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([cohortId])
+}
+
+// Backs /learn — a cohort's LMS content and enrollment. One Cohort has many
+// Modules (its curriculum) and many CohortApplications (its admitted, and
+// not-yet-decided, applicants).
+model Cohort {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  applications CohortApplication[]
+  modules      Module[]
+  events       CohortEvent[]
+}
+
+// Backs the Space page's "Cohort Activity & Milestones" panel — live
+// masterclasses, office hours, and assignment deadlines. type is a plain
+// validated string ("masterclass" | "office_hours" | "deadline"), matching
+// this schema's informal-enum convention (see ModuleStep.type). Editable via
+// Prisma Studio, same as everything else in this app — no authoring UI yet.
+model CohortEvent {
+  id          String   @id @default(cuid())
+  cohortId    String
+  type        String
+  title       String
+  description String?
+  startsAt    DateTime
+  meetingUrl  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cohort Cohort @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  @@index([cohortId, startsAt])
+}
+
+// A single lesson within a Cohort's curriculum. unlockDate gates visibility
+// on the student dashboard/viewer; orderIndex controls display order.
+// Content itself lives one level down, in ModuleStep — a Module is a
+// container of steps, not content directly.
+model Module {
+  id          String   @id @default(cuid())
+  cohortId    String
+  title       String
+  description String?
+  unlockDate  DateTime
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cohort Cohort       @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  steps  ModuleStep[]
+
+  @@index([cohortId, orderIndex])
+}
+
+// One unit of content within a Module — a Module is now a container of
+// steps, not content directly. type is a plain validated string, not a
+// Prisma enum, matching this schema's existing informal-enum convention
+// (see TeamApplication.roleInterest, Module.videoProvider): "video" |
+// "text" | "file" | "quiz" today, easy to add more later without an
+// enum-altering migration.
+model ModuleStep {
+  id         String @id @default(cuid())
+  moduleId   String
+  type       String
+  title      String
+  orderIndex Int    @default(0)
+
+  // type: "video"
+  videoUrl      String?
+  videoProvider String?
+  videoId       String?
+  audioUrl      String?
+
+  // type: "text"
+  contentMarkdown String?
+
+  // type: "file"
+  fileUrl  String?
+  fileName String?
+
+  // type: "quiz" — { passingScore: number, questions: [{ id, prompt,
+  // options: [{ id, text, isCorrect }] }] }. JSON rather than relational
+  // Quiz/Question/Option tables: no cross-quiz querying is needed, this is
+  // small-scale Prisma-Studio-entered data, and a single JSON blob is
+  // easier to hand-edit there than three joined tables would be.
+  quizData Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  module   Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress StepProgress[]
+
+  @@index([moduleId, orderIndex])
+}
+
+// One row per (user, step) once a student completes that step. For quiz
+// steps, score/answers capture the graded result — always recomputed
+// server-side at submission time from the step's own quizData, never
+// trusted from the client.
+model StepProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  stepId      String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  score       Int?
+  answers     Json?
+
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  step ModuleStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stepId])
+  @@index([userId])
+  @@index([stepId])
 }
 
 model Account {

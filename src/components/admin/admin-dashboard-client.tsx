@@ -1,6 +1,6 @@
 "use client";
 
-import type { ContactMessage, Submission, CohortApplication, TeamMember, Partner, BookRecommendation, GalleryItem, LibraryContribution, TeamApplication } from "@prisma/client";
+import type { ContactMessage, Submission, CohortApplication, TeamMember, Partner, BookRecommendation, GalleryItem, LibraryContribution, TeamApplication, Cohort } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { signOut } from "next-auth/react";
 import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake, UserPlus } from "lucide-react";
@@ -13,6 +13,7 @@ type Section = "overview" | "messages" | "submissions" | "applications" | "team"
 
 const SUBMISSION_STATUSES = ["submitted", "in_review", "revisions_requested", "accepted", "rejected", "published"] as const;
 const CONTRIBUTION_STATUSES = ["pending", "completed", "failed"] as const;
+const APPLICATION_STATUSES = ["pending", "admitted", "rejected", "waitlisted"] as const;
 
 const ROLE_INTEREST_LABELS: Record<string, string> = {
   "research-editorial": "Research & Editorial",
@@ -32,6 +33,7 @@ export function AdminDashboardClient({
   galleryItems,
   libraryContributions,
   teamApplications,
+  cohorts,
 }: {
   contactMessages: ContactMessage[];
   submissions: Submission[];
@@ -42,6 +44,7 @@ export function AdminDashboardClient({
   galleryItems: GalleryItem[];
   libraryContributions: LibraryContribution[];
   teamApplications: TeamApplication[];
+  cohorts: Cohort[];
 }) {
   const [section, setSection] = useState<Section>("overview");
   const [messages, setMessages] = useState(contactMessages);
@@ -111,6 +114,32 @@ export function AdminDashboardClient({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reviewed }),
     }).catch(() => setApps((prev) => prev.map((a) => (a.id === id ? { ...a, reviewed: !reviewed } : a))));
+  };
+
+  const changeApplicationStatus = async (id: string, status: string) => {
+    const previous = apps.find((a) => a.id === id)?.status;
+    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, status: status as CohortApplication["status"] } : a)));
+    const response = await fetch(`/api/admin/applications/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    if (!response.ok && previous) {
+      setApps((prev) => prev.map((a) => (a.id === id ? { ...a, status: previous } : a)));
+    }
+  };
+
+  const changeApplicationCohort = async (id: string, cohortId: string) => {
+    const previous = apps.find((a) => a.id === id)?.cohortId;
+    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, cohortId } : a)));
+    const response = await fetch(`/api/admin/applications/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cohortId }),
+    });
+    if (!response.ok) {
+      setApps((prev) => prev.map((a) => (a.id === id ? { ...a, cohortId: previous ?? null } : a)));
+    }
   };
 
   const toggleTeamAppReviewed = async (id: string, reviewed: boolean) => {
@@ -369,14 +398,35 @@ export function AdminDashboardClient({
                         )}
                         <p className="mt-2 font-mono-ledger text-xs text-ink/40">{new Date(a.createdAt).toLocaleString()}</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => toggleReviewed(a.id, !a.reviewed)}
-                        className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${a.reviewed ? "border-teal-deep bg-teal-deep/10 text-teal-deep" : "border-ink/20 text-ink-muted hover:border-teal-deep hover:text-teal-deep"}`}
-                      >
-                        <Check aria-hidden="true" className="h-3.5 w-3.5" />
-                        {a.reviewed ? "Reviewed" : "Mark reviewed"}
-                      </button>
+                      <div className="flex shrink-0 flex-col items-end gap-2">
+                        <select
+                          value={a.status}
+                          onChange={(e) => changeApplicationStatus(a.id, e.target.value)}
+                          className="rounded-full border border-ink/20 bg-white px-3 py-1.5 text-xs font-semibold text-ink focus:border-teal-deep focus:outline-none"
+                        >
+                          {APPLICATION_STATUSES.map((status) => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={a.cohortId ?? ""}
+                          onChange={(e) => changeApplicationCohort(a.id, e.target.value)}
+                          className="rounded-full border border-ink/20 bg-white px-3 py-1.5 text-xs font-semibold text-ink focus:border-teal-deep focus:outline-none"
+                        >
+                          <option value="">No cohort</option>
+                          {cohorts.map((cohort) => (
+                            <option key={cohort.id} value={cohort.id}>{cohort.title}</option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => toggleReviewed(a.id, !a.reviewed)}
+                          className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${a.reviewed ? "border-teal-deep bg-teal-deep/10 text-teal-deep" : "border-ink/20 text-ink-muted hover:border-teal-deep hover:text-teal-deep"}`}
+                        >
+                          <Check aria-hidden="true" className="h-3.5 w-3.5" />
+                          {a.reviewed ? "Reviewed" : "Mark reviewed"}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
