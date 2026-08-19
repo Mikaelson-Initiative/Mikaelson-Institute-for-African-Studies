@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/motion/reveal";
@@ -10,6 +11,16 @@ import { LibraryShowcase } from "@/components/library-showcase";
 import { SectionLabel } from "@/components/section-label";
 import { focusAreas } from "@/lib/focus-areas";
 import { heroConcernWords } from "@/lib/hero-concerns";
+
+// title uses `absolute` to skip the root layout's "%s - Mikaelson Institute
+// for African Studies" template — the institute name doubling up on its own
+// homepage title reads as redundant in a search result or browser tab.
+export const metadata: Metadata = {
+  title: { absolute: "Mikaelson Institute for African Studies" },
+  description:
+    "A pan-African academic research institute publishing scholarship in history and decolonization, society and politics, arts and culture, and religion and philosophy — and home to Ubuntu, our free cohort-based learning program.",
+  alternates: { canonical: "/" },
+};
 
 export default function HomePage() {
   return (

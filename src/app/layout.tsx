@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Baloo_2, IBM_Plex_Mono, Inter } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import "./globals.css";
@@ -94,6 +95,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${baloo.variable} ${inter.variable} ${ledgerMono.variable} h-full antialiased`}
     >
+      <head>
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-F7L3H5ZV9X" strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-F7L3H5ZV9X');
+          `}
+        </Script>
+      </head>
       <body className="min-h-full flex flex-col bg-beige text-ink">
         <script
           type="application/ld+json"

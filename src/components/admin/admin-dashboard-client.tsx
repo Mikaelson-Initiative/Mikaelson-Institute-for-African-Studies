@@ -3,7 +3,7 @@
 import type { ContactMessage, Submission, CohortApplication, TeamMember, Partner, BookRecommendation, GalleryItem, LibraryContribution, TeamApplication, Cohort } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { signOut } from "next-auth/react";
-import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake, UserPlus } from "lucide-react";
+import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake, UserPlus, AlertCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
 
@@ -69,6 +69,7 @@ export function AdminDashboardClient({
   const [editGalleryItem, setEditGalleryItem] = useState<GalleryItem | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [crudError, setCrudError] = useState<string | null>(null);
 
   // --- Inbox / Forms ---
 
@@ -156,10 +157,11 @@ export function AdminDashboardClient({
   const handleTeamSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setCrudError(null);
     const fd = new FormData(e.currentTarget);
     const isEditing = !!editTeam;
     if (isEditing) fd.append("id", editTeam.id);
-    
+
     try {
       const res = await fetch("/api/admin/team", { method: isEditing ? "PATCH" : "POST", body: fd });
       if (res.ok) {
@@ -167,6 +169,9 @@ export function AdminDashboardClient({
         setTeam((prev) => isEditing ? prev.map(t => t.id === saved.id ? saved : t) : [...prev, saved]);
         setShowTeamForm(false);
         setEditTeam(null);
+      } else {
+        const error = await res.json().catch(() => null);
+        setCrudError(error?.error || "Couldn't save this team member, try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -184,10 +189,11 @@ export function AdminDashboardClient({
   const handlePartnerSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setCrudError(null);
     const fd = new FormData(e.currentTarget);
     const isEditing = !!editPartner;
     if (isEditing) fd.append("id", editPartner.id);
-    
+
     try {
       const res = await fetch("/api/admin/partners", { method: isEditing ? "PATCH" : "POST", body: fd });
       if (res.ok) {
@@ -195,6 +201,9 @@ export function AdminDashboardClient({
         setPartnerList((prev) => isEditing ? prev.map(p => p.id === saved.id ? saved : p) : [...prev, saved]);
         setShowPartnerForm(false);
         setEditPartner(null);
+      } else {
+        const error = await res.json().catch(() => null);
+        setCrudError(error?.error || "Couldn't save this partner, try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -212,10 +221,11 @@ export function AdminDashboardClient({
   const handleBookSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setCrudError(null);
     const fd = new FormData(e.currentTarget);
     const isEditing = !!editBook;
     if (isEditing) fd.append("id", editBook.id);
-    
+
     try {
       const res = await fetch("/api/admin/books", { method: isEditing ? "PATCH" : "POST", body: fd });
       if (res.ok) {
@@ -223,6 +233,9 @@ export function AdminDashboardClient({
         setBookList((prev) => isEditing ? prev.map(b => b.id === saved.id ? saved : b) : [...prev, saved]);
         setShowBookForm(false);
         setEditBook(null);
+      } else {
+        const error = await res.json().catch(() => null);
+        setCrudError(error?.error || "Couldn't save this book, try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -240,10 +253,11 @@ export function AdminDashboardClient({
   const handleGallerySubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setCrudError(null);
     const fd = new FormData(e.currentTarget);
     const isEditing = !!editGalleryItem;
     if (isEditing) fd.append("id", editGalleryItem.id);
-    
+
     try {
       const res = await fetch("/api/admin/gallery", { method: isEditing ? "PATCH" : "POST", body: fd });
       if (res.ok) {
@@ -252,8 +266,8 @@ export function AdminDashboardClient({
         setShowGalleryForm(false);
         setEditGalleryItem(null);
       } else {
-        const error = await res.json();
-        alert(error.error || "Failed to save gallery item.");
+        const error = await res.json().catch(() => null);
+        setCrudError(error?.error || "Couldn't save this gallery item, try again.");
       }
     } finally {
       setIsSubmitting(false);
@@ -441,7 +455,7 @@ export function AdminDashboardClient({
                   Team Roster <span className="text-ink-muted">({team.length})</span>
                 </h2>
                 <button 
-                  onClick={() => { setShowTeamForm(!showTeamForm); setEditTeam(null); }} 
+                  onClick={() => { setShowTeamForm(!showTeamForm); setEditTeam(null); setCrudError(null); }} 
                   className="flex items-center gap-1 text-sm font-semibold text-teal-deep hover:underline"
                 >
                   <Plus className="h-4 w-4" /> {showTeamForm && !editTeam ? "Cancel" : "Add New"}
@@ -463,10 +477,17 @@ export function AdminDashboardClient({
                     <input name="file" type="file" accept="image/*" className="mt-1 w-full text-sm text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-deep/10 file:text-teal-deep hover:file:bg-teal-deep/20" />
                     {editTeam?.image && <p className="mt-2 text-xs text-ink/50">Current: {editTeam.image.split("/").pop()}</p>}
                   </div>
+                  {crudError && (
+                    <p role="alert" className="flex items-center gap-2 text-sm font-medium text-red-600">
+                      <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
+                      {crudError}
+                    </p>
+                  )}
                   <div className="flex justify-end gap-2">
-                    <button type="button" onClick={() => { setShowTeamForm(false); setEditTeam(null); }} className="rounded px-4 py-2 text-sm font-semibold text-ink-muted hover:bg-black/5">Cancel</button>
-                    <button disabled={isSubmitting} type="submit" className="rounded bg-teal-deep px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
-                      {editTeam ? "Update Team Member" : "Save Team Member"}
+                    <button type="button" onClick={() => { setShowTeamForm(false); setEditTeam(null); setCrudError(null); }} className="rounded px-4 py-2 text-sm font-semibold text-ink-muted hover:bg-black/5">Cancel</button>
+                    <button disabled={isSubmitting} type="submit" className="flex items-center gap-2 rounded bg-teal-deep px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                      {isSubmitting && <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />}
+                      {isSubmitting ? "Saving…" : editTeam ? "Update Team Member" : "Save Team Member"}
                     </button>
                   </div>
                 </form>
@@ -477,7 +498,7 @@ export function AdminDashboardClient({
                 {team.map((member) => (
                   <div key={member.id} className="rounded-xl border border-ink/10 bg-paper p-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      {member.image && <img src={member.image} alt="" className="w-10 h-10 rounded-full object-cover bg-ink/5" />}
+                      {member.image && <img src={member.image} alt={member.name || "Team member"} className="w-10 h-10 rounded-full object-cover bg-ink/5" />}
                       <div>
                         <p className="font-semibold text-ink">{member.name} <span className="text-ink-muted font-normal">, {member.role}</span></p>
                         <p className="text-xs text-ink-muted uppercase tracking-wide mt-1">Category: {member.category} | Index: {member.displayIndex}</p>
@@ -501,7 +522,7 @@ export function AdminDashboardClient({
                   Partners <span className="text-ink-muted">({partnerList.length})</span>
                 </h2>
                 <button 
-                  onClick={() => { setShowPartnerForm(!showPartnerForm); setEditPartner(null); }} 
+                  onClick={() => { setShowPartnerForm(!showPartnerForm); setEditPartner(null); setCrudError(null); }} 
                   className="flex items-center gap-1 text-sm font-semibold text-teal-deep hover:underline"
                 >
                   <Plus className="h-4 w-4" /> {showPartnerForm && !editPartner ? "Cancel" : "Add New"}
@@ -520,10 +541,17 @@ export function AdminDashboardClient({
                     <input name="file" type="file" accept="image/*" className="mt-1 w-full text-sm text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-deep/10 file:text-teal-deep hover:file:bg-teal-deep/20" />
                     {editPartner?.logo && <p className="mt-2 text-xs text-ink/50">Current: {editPartner.logo.split("/").pop()}</p>}
                   </div>
+                  {crudError && (
+                    <p role="alert" className="flex items-center gap-2 text-sm font-medium text-red-600">
+                      <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
+                      {crudError}
+                    </p>
+                  )}
                   <div className="flex justify-end gap-2">
-                    <button type="button" onClick={() => { setShowPartnerForm(false); setEditPartner(null); }} className="rounded px-4 py-2 text-sm font-semibold text-ink-muted hover:bg-black/5">Cancel</button>
-                    <button disabled={isSubmitting} type="submit" className="rounded bg-teal-deep px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
-                      {editPartner ? "Update Partner" : "Save Partner"}
+                    <button type="button" onClick={() => { setShowPartnerForm(false); setEditPartner(null); setCrudError(null); }} className="rounded px-4 py-2 text-sm font-semibold text-ink-muted hover:bg-black/5">Cancel</button>
+                    <button disabled={isSubmitting} type="submit" className="flex items-center gap-2 rounded bg-teal-deep px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                      {isSubmitting && <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />}
+                      {isSubmitting ? "Saving…" : editPartner ? "Update Partner" : "Save Partner"}
                     </button>
                   </div>
                 </form>
@@ -534,7 +562,7 @@ export function AdminDashboardClient({
                 {partnerList.map((partner) => (
                   <div key={partner.id} className="rounded-xl border border-ink/10 bg-paper p-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      {partner.logo && <img src={partner.logo} alt="" className="w-12 h-12 rounded object-contain bg-white" />}
+                      {partner.logo && <img src={partner.logo} alt={partner.name || "Partner logo"} className="w-12 h-12 rounded object-contain bg-white" />}
                       <div>
                         <p className="font-semibold text-ink">{partner.name}</p>
                         {partner.type && <p className="text-sm text-ink-muted mt-1">{partner.type}</p>}
@@ -557,7 +585,7 @@ export function AdminDashboardClient({
                   Library Books <span className="text-ink-muted">({bookList.length})</span>
                 </h2>
                 <button 
-                  onClick={() => { setShowBookForm(!showBookForm); setEditBook(null); }} 
+                  onClick={() => { setShowBookForm(!showBookForm); setEditBook(null); setCrudError(null); }} 
                   className="flex items-center gap-1 text-sm font-semibold text-teal-deep hover:underline"
                 >
                   <Plus className="h-4 w-4" /> {showBookForm && !editBook ? "Cancel" : "Add New"}
@@ -573,10 +601,17 @@ export function AdminDashboardClient({
                   </div>
                   <div><label className="text-xs font-semibold uppercase text-ink-muted">Open Library Image URL</label><input required defaultValue={editBook?.imgUrl} name="imgUrl" type="url" placeholder="https://covers.openlibrary.org/b/isbn/..." className="mt-1 w-full rounded border border-ink/10 px-3 py-2 text-sm focus:border-teal-deep focus:outline-none" /></div>
                   <div><label className="text-xs font-semibold uppercase text-ink-muted">Source Link URL</label><input required defaultValue={editBook?.linkUrl} name="linkUrl" type="url" placeholder="https://openlibrary.org/..." className="mt-1 w-full rounded border border-ink/10 px-3 py-2 text-sm focus:border-teal-deep focus:outline-none" /></div>
+                  {crudError && (
+                    <p role="alert" className="flex items-center gap-2 text-sm font-medium text-red-600">
+                      <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
+                      {crudError}
+                    </p>
+                  )}
                   <div className="flex justify-end gap-2">
-                    <button type="button" onClick={() => { setShowBookForm(false); setEditBook(null); }} className="rounded px-4 py-2 text-sm font-semibold text-ink-muted hover:bg-black/5">Cancel</button>
-                    <button disabled={isSubmitting} type="submit" className="rounded bg-teal-deep px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
-                      {editBook ? "Update Book" : "Save Book"}
+                    <button type="button" onClick={() => { setShowBookForm(false); setEditBook(null); setCrudError(null); }} className="rounded px-4 py-2 text-sm font-semibold text-ink-muted hover:bg-black/5">Cancel</button>
+                    <button disabled={isSubmitting} type="submit" className="flex items-center gap-2 rounded bg-teal-deep px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                      {isSubmitting && <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />}
+                      {isSubmitting ? "Saving…" : editBook ? "Update Book" : "Save Book"}
                     </button>
                   </div>
                 </form>
@@ -627,7 +662,7 @@ export function AdminDashboardClient({
                   Art Gallery <span className="text-ink-muted">({gallery.length})</span>
                 </h2>
                 <button 
-                  onClick={() => { setShowGalleryForm(!showGalleryForm); setEditGalleryItem(null); }} 
+                  onClick={() => { setShowGalleryForm(!showGalleryForm); setEditGalleryItem(null); setCrudError(null); }} 
                   className="flex items-center gap-1 text-sm font-semibold text-teal-deep hover:underline"
                 >
                   <Plus className="h-4 w-4" /> {showGalleryForm && !editGalleryItem ? "Cancel" : "Add New"}
@@ -644,10 +679,17 @@ export function AdminDashboardClient({
                     <input required={!editGalleryItem} name="file" type="file" accept="image/*" className="mt-1 w-full text-sm text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-deep/10 file:text-teal-deep hover:file:bg-teal-deep/20" />
                     {editGalleryItem?.imageUrl && <p className="mt-2 text-xs text-ink/50">Current: {editGalleryItem.imageUrl.split("/").pop()}</p>}
                   </div>
+                  {crudError && (
+                    <p role="alert" className="flex items-center gap-2 text-sm font-medium text-red-600">
+                      <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
+                      {crudError}
+                    </p>
+                  )}
                   <div className="flex justify-end gap-2">
-                    <button type="button" onClick={() => { setShowGalleryForm(false); setEditGalleryItem(null); }} className="rounded px-4 py-2 text-sm font-semibold text-ink-muted hover:bg-black/5">Cancel</button>
-                    <button disabled={isSubmitting} type="submit" className="rounded bg-teal-deep px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
-                      {editGalleryItem ? "Update Artwork" : "Save Artwork"}
+                    <button type="button" onClick={() => { setShowGalleryForm(false); setEditGalleryItem(null); setCrudError(null); }} className="rounded px-4 py-2 text-sm font-semibold text-ink-muted hover:bg-black/5">Cancel</button>
+                    <button disabled={isSubmitting} type="submit" className="flex items-center gap-2 rounded bg-teal-deep px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                      {isSubmitting && <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />}
+                      {isSubmitting ? "Saving…" : editGalleryItem ? "Update Artwork" : "Save Artwork"}
                     </button>
                   </div>
                 </form>
