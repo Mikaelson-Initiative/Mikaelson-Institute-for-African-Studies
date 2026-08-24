@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { renderEmail } from "@/lib/email-template";
+import { otpVerifyLimiter } from "@/lib/rate-limit";
 
 const CODE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const RESEND_COOLDOWN_MS = 60 * 1000; // 1 minute per email, guards the Resend free-tier daily cap
@@ -52,6 +53,11 @@ export async function sendLoginCode(email: string): Promise<SendCodeResult> {
 
 /** Consumes a code if valid — returns whether it matched, one-time-use. */
 export async function verifyLoginCode(email: string, code: string): Promise<boolean> {
+  if (otpVerifyLimiter) {
+    const { success } = await otpVerifyLimiter.limit(email);
+    if (!success) return false;
+  }
+
   const token = await prisma.verificationToken.findUnique({
     where: { identifier_token: { identifier: email, token: code } },
   });

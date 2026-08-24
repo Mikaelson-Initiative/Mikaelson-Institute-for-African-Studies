@@ -1,80 +1,123 @@
+import { randomUUID } from "node:crypto";
+import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
-import { put } from "@vercel/blob";
+import {
+  ACCEPTED_IMAGE_TYPES,
+  IMAGE_EXTENSION_BY_MIME,
+  MAX_IMAGE_FILE_SIZE_BYTES,
+} from "@/lib/validation/admin-upload";
+import { partnerFieldsSchema } from "@/lib/validation/admin-content";
+
+async function resolveLogoUrl(formData: FormData, existingLogo: string | null) {
+  const file = formData.get("file") as File | null;
+  if (!file || file.size === 0) {
+    return { logoUrl: existingLogo, error: null as NextResponse | null };
+  }
+
+  if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+    return {
+      logoUrl: null,
+      error: NextResponse.json(
+        { error: "validation", fieldErrors: { file: ["Logo must be PNG, JPEG, WEBP, or GIF."] } },
+        { status: 400 },
+      ),
+    };
+  }
+  if (file.size > MAX_IMAGE_FILE_SIZE_BYTES) {
+    return {
+      logoUrl: null,
+      error: NextResponse.json(
+        { error: "validation", fieldErrors: { file: ["Logo must be under 5MB."] } },
+        { status: 400 },
+      ),
+    };
+  }
+
+  const extension = IMAGE_EXTENSION_BY_MIME[file.type];
+  const blob = await put(`partners/${randomUUID()}.${extension}`, file, { access: "public" });
+  return { logoUrl: blob.url, error: null as NextResponse | null };
+}
 
 export async function POST(request: Request) {
   const { error } = await requireAdmin();
   if (error) return error;
-  try {
-    const formData = await request.formData();
-    
-    let logoUrl = formData.get("logo") as string | null;
-    const file = formData.get("file") as File | null;
-    
-    if (file && file.size > 0) {
-      const blob = await put(`partners/${Date.now()}-${file.name}`, file, { access: "public" });
-      logoUrl = blob.url;
-    }
 
-    const partner = await prisma.partner.create({
-      data: {
-        name: formData.get("name") as string,
-        type: (formData.get("type") as string) || null,
-        logo: logoUrl || null,
-        sortOrder: parseInt((formData.get("sortOrder") as string) || "0", 10),
-      },
-    });
+  const formData = await request.formData();
+  const { logoUrl, error: uploadError } = await resolveLogoUrl(formData, formData.get("logo") as string | null);
+  if (uploadError) return uploadError;
+
+  const fields = partnerFieldsSchema.safeParse({
+    name: formData.get("name"),
+    type: formData.get("type") || null,
+    sortOrder: formData.get("sortOrder") || "0",
+  });
+  if (!fields.success) {
+    return NextResponse.json(
+      { error: "validation", fieldErrors: fields.error.flatten().fieldErrors },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const partner = await prisma.partner.create({ data: { ...fields.data, logo: logoUrl || null } });
     return NextResponse.json(partner);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "failed to create partner" }, { status: error.message === "unauthorized" ? 401 : 400 });
+  } catch (err) {
+    console.error("admin/partners create failed", err);
+    return NextResponse.json({ error: "Failed to create partner." }, { status: 500 });
   }
 }
 
 export async function PATCH(request: Request) {
   const { error } = await requireAdmin();
   if (error) return error;
+
+  const formData = await request.formData();
+  const id = formData.get("id") as string | null;
+  if (!id) {
+    return NextResponse.json({ error: "Missing ID." }, { status: 400 });
+  }
+
+  const { logoUrl, error: uploadError } = await resolveLogoUrl(formData, formData.get("logo") as string | null);
+  if (uploadError) return uploadError;
+
+  const fields = partnerFieldsSchema.safeParse({
+    name: formData.get("name"),
+    type: formData.get("type") || null,
+    sortOrder: formData.get("sortOrder") || "0",
+  });
+  if (!fields.success) {
+    return NextResponse.json(
+      { error: "validation", fieldErrors: fields.error.flatten().fieldErrors },
+      { status: 400 },
+    );
+  }
+
   try {
-    const formData = await request.formData();
-    const id = formData.get("id") as string;
-    
-    if (!id) throw new Error("Missing ID");
-
-    let logoUrl = formData.get("logo") as string | null;
-    const file = formData.get("file") as File | null;
-    
-    if (file && file.size > 0) {
-      const blob = await put(`partners/${Date.now()}-${file.name}`, file, { access: "public" });
-      logoUrl = blob.url;
-    }
-
-    const partner = await prisma.partner.update({
-      where: { id },
-      data: {
-        name: formData.get("name") as string,
-        type: (formData.get("type") as string) || null,
-        logo: logoUrl || null,
-        sortOrder: parseInt((formData.get("sortOrder") as string) || "0", 10),
-      },
-    });
+    const partner = await prisma.partner.update({ where: { id }, data: { ...fields.data, logo: logoUrl || null } });
     return NextResponse.json(partner);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "failed to update partner" }, { status: error.message === "unauthorized" ? 401 : 400 });
+  } catch (err) {
+    console.error("admin/partners update failed", err);
+    return NextResponse.json({ error: "Failed to update partner." }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request) {
   const { error } = await requireAdmin();
   if (error) return error;
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    
-    if (!id) throw new Error("Missing ID");
 
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "Missing ID." }, { status: 400 });
+  }
+
+  try {
     await prisma.partner.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || "failed to delete partner" }, { status: error.message === "unauthorized" ? 401 : 400 });
+  } catch (err) {
+    console.error("admin/partners delete failed", err);
+    return NextResponse.json({ error: "Failed to delete partner." }, { status: 500 });
   }
 }

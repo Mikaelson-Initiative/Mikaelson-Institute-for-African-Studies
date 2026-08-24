@@ -31,10 +31,15 @@ export async function confirmLibraryContributionPayment(reference: string): Prom
     return "mismatch";
   }
 
-  await prisma.libraryContribution.update({
-    where: { id: contribution.id },
+  // Atomic, conditional on still being non-completed — the webhook and the
+  // /library/support/callback page can both race to confirm the same
+  // reference; only the update that actually flips the status sends the
+  // email, so a near-simultaneous race sends it once, not twice.
+  const { count } = await prisma.libraryContribution.updateMany({
+    where: { id: contribution.id, status: { not: "completed" } },
     data: { status: "completed" },
   });
+  if (count === 0) return "already-completed";
 
   await sendEmail({
     to: contribution.email,

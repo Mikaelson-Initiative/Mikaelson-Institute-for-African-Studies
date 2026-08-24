@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { sendLoginCode } from "@/lib/otp";
+import { getClientIp, otpSendIpLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
 import { sendCodeSchema } from "@/lib/validation/auth";
 
 export async function POST(request: Request) {
+  const limited = await rateLimitOrResponse(otpSendIpLimiter, getClientIp(request));
+  if (limited) return limited;
+
   const body = await request.json();
   const fields = sendCodeSchema.safeParse(body);
 

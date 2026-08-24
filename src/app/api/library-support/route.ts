@@ -4,6 +4,7 @@ import { escapeHtml, renderEmail } from "@/lib/email-template";
 import { prisma } from "@/lib/prisma";
 import { formatNaira } from "@/lib/library-contribution-tiers";
 import { initializeTransaction } from "@/lib/paystack";
+import { getClientIp, formIpLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
 import { SITE_URL } from "@/lib/site";
 import { libraryContributionSchema } from "@/lib/validation/library-support";
 
@@ -13,6 +14,9 @@ import { libraryContributionSchema } from "@/lib/validation/library-support";
 // /library/support/callback (or the Paystack webhook, in production) verifies
 // the charge — see src/lib/confirm-library-contribution.ts.
 export async function POST(request: Request) {
+  const limited = await rateLimitOrResponse(formIpLimiter, getClientIp(request));
+  if (limited) return limited;
+
   const body = await request.json();
   const fields = libraryContributionSchema.safeParse(body);
 

@@ -12,12 +12,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid signature" }, { status: 401 });
   }
 
-  const event = JSON.parse(rawBody);
+  let event: { event?: string; data?: { reference?: string } };
+  try {
+    event = JSON.parse(rawBody);
+  } catch {
+    return NextResponse.json({ error: "invalid payload" }, { status: 400 });
+  }
 
   if (event.event === "charge.success") {
     const reference = event.data?.reference;
     if (typeof reference === "string" && reference.startsWith("mias-library-")) {
-      await confirmLibraryContributionPayment(reference);
+      try {
+        await confirmLibraryContributionPayment(reference);
+      } catch (err) {
+        console.error("paystack webhook: confirmLibraryContributionPayment failed", err);
+        return NextResponse.json({ error: "processing failed" }, { status: 500 });
+      }
     }
   }
 

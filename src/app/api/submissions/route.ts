@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
 import { escapeHtml, renderEmail } from "@/lib/email-template";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, formIpLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
 import {
   ACCEPTED_FILE_TYPES,
   MAX_FILE_SIZE_BYTES,
@@ -30,8 +31,16 @@ import {
 // a dedicated private-access Blob store instead.
 const UPLOAD_DIR = path.join(process.cwd(), "uploads", "submissions");
 
+// Extension is derived from the already-validated MIME type, never from the
+// client-supplied file.name — using the raw filename here let a crafted name
+// (e.g. one whose "extension" contains "../") escape UPLOAD_DIR via path.join.
+const EXTENSION_BY_MIME: Record<string, string> = {
+  "application/pdf": "pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+};
+
 async function storeSubmissionFile(file: File): Promise<string> {
-  const extension = file.name.split(".").pop();
+  const extension = EXTENSION_BY_MIME[file.type] ?? "bin";
   const storedFileName = `${randomUUID()}.${extension}`;
 
   if (process.env.BLOB_READ_WRITE_TOKEN) {
@@ -49,6 +58,9 @@ async function storeSubmissionFile(file: File): Promise<string> {
 }
 
 export async function POST(request: Request) {
+  const limited = await rateLimitOrResponse(formIpLimiter, getClientIp(request));
+  if (limited) return limited;
+
   const formData = await request.formData();
 
   const fields = submissionFieldsSchema.safeParse({

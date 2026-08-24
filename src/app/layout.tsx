@@ -89,6 +89,14 @@ const organizationJsonLd = {
   sameAs: [] as string[],
 };
 
+// Only fires in the actual production deployment, not local dev or preview
+// deployments — NODE_ENV is "production" for preview builds too on Vercel,
+// so VERCEL_ENV is the one that actually distinguishes them. Without this
+// gate, every preview URL and every `npm run dev` session would report to
+// the same live GA4 property, mixing dev/test traffic into real analytics.
+const GA_MEASUREMENT_ID =
+  process.env.VERCEL_ENV === "production" ? process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID : undefined;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -96,16 +104,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${baloo.variable} ${inter.variable} ${ledgerMono.variable} h-full antialiased`}
     >
       <head>
-        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-F7L3H5ZV9X" strategy="afterInteractive" />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
+        {GA_MEASUREMENT_ID && (
+          <>
+            <Script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
 
-            gtag('config', 'G-F7L3H5ZV9X');
-          `}
-        </Script>
+                gtag('config', '${GA_MEASUREMENT_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body className="min-h-full flex flex-col bg-beige text-ink">
         <script

@@ -54,3 +54,7 @@ next-env.d.ts
 
 # Claude Code tooling/skills — not application code
 /.claude
+
+# generated docs artifacts — docs/HOW_IT_WORKS.md is the tracked source;
+# PDF exports of it are local-only, regenerate on demand
+docs/*.pdf

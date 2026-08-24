@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { notificationRecipient, sendEmail } from "@/lib/email";
 import { escapeHtml, renderEmail, safeHref } from "@/lib/email-template";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, formIpLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
 import {
   ACCEPTED_CV_FILE_TYPES,
   MAX_CV_FILE_SIZE_BYTES,
@@ -26,8 +27,17 @@ const ROLE_INTEREST_LABELS: Record<string, string> = {
 // set before deploying.
 const UPLOAD_DIR = path.join(process.cwd(), "uploads", "team-applications");
 
+// Extension is derived from the already-validated MIME type, never from the
+// client-supplied file.name — see the matching comment in
+// src/app/api/submissions/route.ts.
+const EXTENSION_BY_MIME: Record<string, string> = {
+  "application/pdf": "pdf",
+  "application/msword": "doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+};
+
 async function storeCvFile(file: File): Promise<string> {
-  const extension = file.name.split(".").pop();
+  const extension = EXTENSION_BY_MIME[file.type] ?? "bin";
   const storedFileName = `${randomUUID()}.${extension}`;
 
   if (process.env.BLOB_READ_WRITE_TOKEN) {
@@ -45,6 +55,9 @@ async function storeCvFile(file: File): Promise<string> {
 }
 
 export async function POST(request: Request) {
+  const limited = await rateLimitOrResponse(formIpLimiter, getClientIp(request));
+  if (limited) return limited;
+
   const formData = await request.formData();
 
   const fields = teamApplicationFieldsSchema.safeParse({

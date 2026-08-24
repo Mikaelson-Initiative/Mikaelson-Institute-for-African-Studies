@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import { notificationRecipient, sendEmail } from "@/lib/email";
 import { escapeHtml, renderEmail } from "@/lib/email-template";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, formIpLimiter, rateLimitOrResponse } from "@/lib/rate-limit";
 import { contactSchema } from "@/lib/validation/contact";
 
 export async function POST(request: Request) {
+  const limited = await rateLimitOrResponse(formIpLimiter, getClientIp(request));
+  if (limited) return limited;
+
   const body = await request.json();
   const fields = contactSchema.safeParse(body);
 
