@@ -46,6 +46,7 @@ export default function SignupClient() {
   const [primaryGoal, setPrimaryGoal] = useState<string | null>(null);
   const [about, setAbout] = useState("");
   const [motivation, setMotivation] = useState("");
+  const [customAmount, setCustomAmount] = useState("");
 
   // Google sign-in is a full-page redirect back to /signup — once the
   // session lands, decide whether this is a first-time applicant (skip
@@ -753,6 +754,31 @@ export default function SignupClient() {
                     </button>
                   );
                 })}
+              </div>
+
+              <div className="mt-4 w-full">
+                <p className="mb-2 text-xs font-medium text-ink-muted">Or give any amount you'd like:</p>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-ink/40">₦</span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      value={customAmount}
+                      onChange={(e) => setCustomAmount(e.target.value)}
+                      placeholder="10,000"
+                      className="w-full rounded-full border border-teal-deep/20 bg-white py-3 pl-8 pr-4 text-sm text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    disabled={pending || !Number.isInteger(Number(customAmount)) || Number(customAmount) < 1}
+                    onClick={() => handleSelectDonationTier("Custom Amount", Number(customAmount))}
+                  >
+                    Contribute
+                  </Button>
+                </div>
               </div>
 
               {pending && (

@@ -4,6 +4,7 @@ import { SectionLabel } from "@/components/section-label";
 import { Reveal } from "@/components/motion/reveal";
 import { SetBreadcrumb } from "@/components/learn/breadcrumb-context";
 import { LessonViewer, type NextModuleInfo } from "@/components/learn/lesson-viewer";
+import type { StepContentData } from "@/components/learn/step-content";
 import { prisma } from "@/lib/prisma";
 import { requireCohortAccess } from "@/lib/require-cohort-access";
 import { sanitizeQuizForClient, type QuizData } from "@/lib/quiz";
@@ -78,6 +79,7 @@ export default async function LearnModulePage({
     fileUrl: step.fileUrl,
     fileName: step.fileName,
     quizData: step.quizData ? sanitizeQuizForClient(step.quizData as unknown as QuizData) : null,
+    masterclassData: step.masterclassData as StepContentData["masterclassData"],
   }));
 
   return (

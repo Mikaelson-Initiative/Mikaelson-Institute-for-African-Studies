@@ -90,6 +90,7 @@ const STEP_TYPE_LABELS: Record<string, [singular: string, plural: string]> = {
   text: ["reading", "readings"],
   file: ["resource", "resources"],
   quiz: ["quiz", "quizzes"],
+  masterclass: ["masterclass", "masterclasses"],
 };
 
 // A real, derived-from-data summary of a module's contents (e.g. "1 video •

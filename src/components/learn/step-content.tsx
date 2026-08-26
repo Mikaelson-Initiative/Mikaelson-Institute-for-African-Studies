@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import ReactMarkdown from "react-markdown";
-import { Paperclip } from "lucide-react";
+import { Calendar, Paperclip, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { markdownComponents } from "@/components/learn/markdown-components";
 import { isValidYouTubeId } from "@/lib/youtube";
@@ -12,6 +12,15 @@ import type { SanitizedQuizData } from "@/lib/quiz";
 const YouTubePlayer = dynamic(() =>
   import("@/components/learn/youtube-player").then((mod) => mod.YouTubePlayer),
 );
+
+export type MasterclassSession = {
+  startsAt: string;
+  title: string;
+  speakerName: string;
+  speakerAffiliation?: string | null;
+  speakerBio?: string | null;
+  meetingUrl?: string | null;
+};
 
 export type StepContentData = {
   id: string;
@@ -25,7 +34,21 @@ export type StepContentData = {
   fileUrl: string | null;
   fileName: string | null;
   quizData: unknown;
+  masterclassData: MasterclassSession[] | null;
 };
+
+function formatSessionTime(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleString("en-US", {
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  });
+}
 
 // Pure content renderer for a single step, by type — no accordion chrome and
 // no "mark complete" control of its own; the lesson viewer owns navigation
@@ -86,6 +109,36 @@ export function StepContent({
           previousAnswers={answers}
           onGraded={onGraded}
         />
+      );
+
+    case "masterclass":
+      return step.masterclassData && step.masterclassData.length > 0 ? (
+        <div className="max-w-3xl space-y-4">
+          {step.masterclassData.map((session, i) => (
+            <div key={i} className="rounded-2xl border border-ink/10 bg-white p-6">
+              <div className="flex items-center gap-2 text-sm font-medium text-teal-deep">
+                <Calendar aria-hidden="true" className="h-4 w-4" />
+                {formatSessionTime(session.startsAt)}
+              </div>
+              <h3 className="mt-2 font-display text-xl font-semibold text-ink">{session.title}</h3>
+              <div className="mt-3 flex items-center gap-2 text-sm text-ink">
+                <User aria-hidden="true" className="h-4 w-4 text-ink-muted" />
+                <span className="font-medium">{session.speakerName}</span>
+                {session.speakerAffiliation && (
+                  <span className="text-ink-muted">— {session.speakerAffiliation}</span>
+                )}
+              </div>
+              {session.speakerBio && <p className="mt-3 text-sm leading-relaxed text-ink-muted">{session.speakerBio}</p>}
+              {session.meetingUrl && (
+                <Button href={session.meetingUrl} variant="secondary" className="mt-4">
+                  Join Masterclass
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-ink-muted">No masterclass has been scheduled for this step yet.</p>
       );
 
     default:

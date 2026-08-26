@@ -244,6 +244,13 @@ model ModuleStep {
   // easier to hand-edit there than three joined tables would be.
   quizData Json?
 
+  // type: "masterclass" — array of { startsAt: ISO string, title,
+  // speakerName, speakerAffiliation?, speakerBio?, meetingUrl? }. One step
+  // can list more than one session. A JSON blob, not a relation, for the
+  // same reason quizData is: small-scale, hand-edited via Prisma Studio, no
+  // cross-step querying needed.
+  masterclassData Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

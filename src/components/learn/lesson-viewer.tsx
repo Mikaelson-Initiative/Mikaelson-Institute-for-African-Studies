@@ -11,6 +11,7 @@ import {
   HelpCircle,
   Lock,
   Menu,
+  Mic,
   Paperclip,
   Video,
 } from "lucide-react";
@@ -23,6 +24,7 @@ const TYPE_ICONS = {
   text: FileText,
   file: Paperclip,
   quiz: HelpCircle,
+  masterclass: Mic,
 } as const;
 
 function formatDate(date: Date) {
