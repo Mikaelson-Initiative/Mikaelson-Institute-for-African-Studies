@@ -105,6 +105,7 @@ model User {
   sessions          Session[]
   cohortApplication CohortApplication?
   stepProgress      StepProgress[]
+  cohortDonations   CohortDonation[]
 }
 
 enum CohortApplicationStatus {
@@ -349,6 +350,31 @@ model LibraryContribution {
 
   @@index([status])
   @@index([createdAt])
+}
+
+// Backs the optional "support the program" step shown right after a Cohort
+// application is submitted (see /signup). Deliberately has no relation back
+// to CohortApplicationStatus — donating (or not) must never influence
+// admission, so nothing in the admission flow reads this model. Mirrors
+// LibraryContribution's shape/lifecycle (pending -> completed/failed via
+// Paystack), just scoped to a signed-in applicant instead of an anonymous
+// pledge.
+model CohortDonation {
+  id        String             @id @default(cuid())
+  userId    String
+  name      String
+  email     String
+  amount    Int // Naira
+  tier      String?
+  status    ContributionStatus @default(pending)
+  reference String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
 }
 
 // Backs /join-team. A general volunteer/team application, replacing the

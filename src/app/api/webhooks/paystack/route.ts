@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { confirmLibraryContributionPayment } from "@/lib/confirm-library-contribution";
+import { confirmCohortDonationPayment } from "@/lib/confirm-cohort-donation";
 import { isValidWebhookSignature } from "@/lib/paystack";
 
 // Paystack calls this on charge events. Must read the raw body (not
@@ -26,6 +27,15 @@ export async function POST(request: Request) {
         await confirmLibraryContributionPayment(reference);
       } catch (err) {
         console.error("paystack webhook: confirmLibraryContributionPayment failed", err);
+        return NextResponse.json({ error: "processing failed" }, { status: 500 });
+      }
+    }
+
+    if (typeof reference === "string" && reference.startsWith("mias-cohort-donation-")) {
+      try {
+        await confirmCohortDonationPayment(reference);
+      } catch (err) {
+        console.error("paystack webhook: confirmCohortDonationPayment failed", err);
         return NextResponse.json({ error: "processing failed" }, { status: 500 });
       }
     }

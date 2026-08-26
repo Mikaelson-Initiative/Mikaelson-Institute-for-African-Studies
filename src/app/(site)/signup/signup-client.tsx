@@ -6,8 +6,9 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { signIn, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { cohortDonationTiers, formatNaira } from "@/lib/cohort-donation-tiers";
 
-type Step = "email" | "code" | "name" | "details" | "q1" | "q2" | "about" | "motivation" | "success" | "login" | "already_applied";
+type Step = "email" | "code" | "name" | "details" | "q1" | "q2" | "about" | "motivation" | "donate" | "success" | "login" | "already_applied";
 type FlowType = "signup" | "login";
 
 const GENDER_CHOICES = [
@@ -158,7 +159,29 @@ export default function SignupClient() {
         setError("Couldn't submit your application, try again.");
         return;
       }
-      setStep("success");
+      setStep("donate");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const handleSelectDonationTier = async (tier: string, amount: number) => {
+    setError(null);
+    setPending(true);
+    try {
+      const response = await fetch("/api/cohort-donation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount, tier }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body.authorizationUrl) {
+        setError("Couldn't start the payment, try again.");
+        return;
+      }
+      window.location.assign(body.authorizationUrl);
+    } catch {
+      setError("Couldn't reach the server. Check your connection and try again.");
     } finally {
       setPending(false);
     }
@@ -680,6 +703,72 @@ export default function SignupClient() {
               <Link href="/" className="mt-8">
                 <Button>Return Home</Button>
               </Link>
+            </motion.div>
+          )}
+
+          {/* STEP: DONATE — optional, shown right after the application is
+              submitted; skippable, and never read anywhere admission is
+              decided (see CohortDonation's schema comment). */}
+          {step === "donate" && (
+            <motion.div
+              key="step-donate"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center text-center"
+            >
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-teal/10">
+                <CheckCircle2 className="h-8 w-8 text-teal-deep" />
+              </div>
+              <h2 className="font-display text-3xl font-medium tracking-tight text-ink">
+                You&apos;re one of us now.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-ink-muted">
+                Your application is in — that part&apos;s done. But Cohort 01 is more than an admission, it&apos;s a
+                library still being built, one shelf at a time. If you&apos;d like, you can be part of building it too.
+              </p>
+
+              <div className="mt-8 flex w-full flex-col gap-3">
+                {cohortDonationTiers.map((level) => {
+                  const Icon = level.icon;
+                  return (
+                    <button
+                      key={level.tier}
+                      type="button"
+                      disabled={pending}
+                      onClick={() => handleSelectDonationTier(level.tier, level.amount)}
+                      className="flex items-center gap-4 rounded-2xl border border-ink/10 bg-white p-4 text-left transition-colors hover:border-teal-deep/40 hover:bg-teal-deep/5 disabled:opacity-60"
+                    >
+                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${level.bg} ${level.color}`}>
+                        <Icon className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <span className="flex-1">
+                        <span className="flex items-baseline justify-between gap-2">
+                          <span className="font-display text-base font-semibold text-ink">{level.tier}</span>
+                          <span className="text-sm font-semibold text-teal-deep">{formatNaira(level.amount)}</span>
+                        </span>
+                        <span className="mt-1 block text-xs text-ink-muted">{level.impact}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {pending && (
+                <p className="mt-4 flex items-center gap-2 text-sm text-ink-muted">
+                  <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> Starting payment…
+                </p>
+              )}
+              {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+              <button
+                type="button"
+                onClick={() => { setError(null); setStep("success"); }}
+                className="mt-6 text-sm font-medium text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+              >
+                Not right now
+              </button>
             </motion.div>
           )}
 
