@@ -7,6 +7,26 @@ export type ModuleWithSteps = {
   steps: { id: string }[];
 };
 
+export type WeekWithSteps = {
+  id: string;
+  steps: { id: string }[];
+};
+
+export type ModuleWithWeeks = {
+  id: string;
+  weeks: WeekWithSteps[];
+};
+
+// Every module-progress function below still operates on a flat step list —
+// callers with the new Module -> Week -> ModuleStep shape flatten through
+// this helper rather than each call site reimplementing the flatMap.
+export function flattenModuleWeeks<T extends ModuleWithWeeks>(
+  moduleItem: T,
+): ModuleWithSteps & Omit<T, "weeks"> {
+  const { weeks, ...rest } = moduleItem;
+  return { ...rest, steps: weeks.flatMap((w) => w.steps) } as ModuleWithSteps & Omit<T, "weeks">;
+}
+
 export type ModuleProgress = {
   completedSteps: number;
   totalSteps: number;
@@ -30,11 +50,16 @@ export function computeModuleProgress(
   return { completedSteps, totalSteps, status };
 }
 
+// Same shape as computeModuleProgress — a Week is a { id, steps } list too —
+// aliased so call sites read clearly when computing per-week progress for
+// the Modules list's week cards.
+export const computeWeekProgress = computeModuleProgress;
+
 export async function getCompletedStepIds(userId: string, moduleIds: string[]): Promise<Set<string>> {
   if (moduleIds.length === 0) return new Set();
 
   const rows = await prisma.stepProgress.findMany({
-    where: { userId, completed: true, step: { moduleId: { in: moduleIds } } },
+    where: { userId, completed: true, step: { week: { moduleId: { in: moduleIds } } } },
     select: { stepId: true },
   });
 

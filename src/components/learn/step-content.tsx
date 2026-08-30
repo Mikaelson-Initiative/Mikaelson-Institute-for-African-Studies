@@ -30,7 +30,10 @@ export type StepContentData = {
   videoId: string | null;
   videoUrl: string | null;
   audioUrl: string | null;
+  introMarkdown: string | null;
   contentMarkdown: string | null;
+  pdfUrl: string | null;
+  pdfName: string | null;
   fileUrl: string | null;
   fileName: string | null;
   quizData: unknown;
@@ -83,7 +86,17 @@ export function StepContent({
 
     case "text":
       return (
-        <div className="max-w-3xl space-y-4 text-base leading-relaxed text-ink">
+        <div className="max-w-3xl space-y-4 text-lg leading-relaxed text-ink">
+          {step.introMarkdown && (
+            <ReactMarkdown components={markdownComponents}>{step.introMarkdown}</ReactMarkdown>
+          )}
+          {step.pdfUrl && (
+            <iframe
+              src={step.pdfUrl}
+              title={step.pdfName ?? "Material"}
+              className="h-[70vh] w-full rounded-2xl border border-ink/10"
+            />
+          )}
           <ReactMarkdown components={markdownComponents}>
             {step.contentMarkdown || "Content for this module has not been added yet."}
           </ReactMarkdown>
@@ -125,7 +138,7 @@ export function StepContent({
                 <User aria-hidden="true" className="h-4 w-4 text-ink-muted" />
                 <span className="font-medium">{session.speakerName}</span>
                 {session.speakerAffiliation && (
-                  <span className="text-ink-muted">— {session.speakerAffiliation}</span>
+                  <span className="text-ink-muted">, {session.speakerAffiliation}</span>
                 )}
               </div>
               {session.speakerBio && <p className="mt-3 text-sm leading-relaxed text-ink-muted">{session.speakerBio}</p>}

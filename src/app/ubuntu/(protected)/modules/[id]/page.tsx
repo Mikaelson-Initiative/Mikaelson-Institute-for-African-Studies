@@ -18,10 +18,13 @@ export const revalidate = 0;
 
 export default async function LearnModulePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ week?: string }>;
 }) {
   const { id } = await params;
+  const { week: requestedWeekId } = await searchParams;
   const { session, application, error } = await requireCohortAccess();
   if (error || !session?.user?.id || !application) redirect("/ubuntu/login?denied=1");
 
@@ -34,7 +37,17 @@ export default async function LearnModulePage({
     notFound();
   }
 
-  const stepIds = learningModule.steps.map((s) => s.id);
+  // Steps stay a flat, ordered list across weeks — the lesson viewer's
+  // single-active-step navigation is unchanged; weeks only add a group
+  // label per step for the sidebar.
+  const weeks = learningModule.weeks;
+  const allSteps = weeks.flatMap((w) => w.steps);
+  const weekLabelByStepId: Record<string, string> = {};
+  for (const w of weeks) {
+    for (const s of w.steps) weekLabelByStepId[s.id] = w.title;
+  }
+
+  const stepIds = allSteps.map((s) => s.id);
   const stepProgress = await prisma.stepProgress.findMany({
     where: { userId: session.user.id, stepId: { in: stepIds } },
   });
@@ -53,21 +66,25 @@ export default async function LearnModulePage({
       }
     : null;
 
-  // Land on the first not-yet-done step; if everything is already complete,
-  // land on the last one so the footer's "Next Step"/"Go to Next Module"
-  // control is immediately available on a revisit.
-  const firstIncomplete = learningModule.steps.find((s) => !completedStepIdSet.has(s.id));
-  const initialActiveStepId = (firstIncomplete ?? learningModule.steps[learningModule.steps.length - 1])?.id ?? null;
+  // A "?week=" link from the Modules list lands on that week's first
+  // incomplete step; otherwise land on the first not-yet-done step in the
+  // whole module, or the last one if everything is already complete, so the
+  // footer's "Next Step"/"Go to Next Module" control is immediately
+  // available on a revisit.
+  const requestedWeek = requestedWeekId ? weeks.find((w) => w.id === requestedWeekId) : null;
+  const searchScope = requestedWeek?.steps ?? allSteps;
+  const firstIncomplete = searchScope.find((s) => !completedStepIdSet.has(s.id));
+  const initialActiveStepId = (firstIncomplete ?? searchScope[searchScope.length - 1])?.id ?? null;
 
   const scoresByStepId: Record<string, number | null> = {};
   const answersByStepId: Record<string, Record<string, string> | null> = {};
-  for (const step of learningModule.steps) {
+  for (const step of allSteps) {
     const progress = progressByStepId.get(step.id);
     scoresByStepId[step.id] = progress?.score ?? null;
     answersByStepId[step.id] = (progress?.answers as Record<string, string> | null) ?? null;
   }
 
-  const stepsForViewer = learningModule.steps.map((step) => ({
+  const stepsForViewer = allSteps.map((step) => ({
     id: step.id,
     type: step.type,
     title: step.title,
@@ -75,7 +92,10 @@ export default async function LearnModulePage({
     videoId: step.videoId,
     videoUrl: step.videoUrl,
     audioUrl: step.audioUrl,
+    introMarkdown: step.introMarkdown,
     contentMarkdown: step.contentMarkdown,
+    pdfUrl: step.pdfUrl,
+    pdfName: step.pdfName,
     fileUrl: step.fileUrl,
     fileName: step.fileName,
     quizData: step.quizData ? sanitizeQuizForClient(step.quizData as unknown as QuizData) : null,
@@ -97,6 +117,7 @@ export default async function LearnModulePage({
       <div className="mt-8">
         <LessonViewer
           steps={stepsForViewer}
+          weekLabelByStepId={weekLabelByStepId}
           initialCompletedStepIds={completedStepIds}
           scoresByStepId={scoresByStepId}
           answersByStepId={answersByStepId}

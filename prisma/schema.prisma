@@ -193,8 +193,8 @@ model CohortEvent {
 
 // A single lesson within a Cohort's curriculum. unlockDate gates visibility
 // on the student dashboard/viewer; orderIndex controls display order.
-// Content itself lives one level down, in ModuleStep — a Module is a
-// container of steps, not content directly.
+// Content itself lives two levels down, in ModuleStep, grouped by Week — a
+// Module is a container of Weeks, not content or steps directly.
 model Module {
   id          String   @id @default(cuid())
   cohortId    String
@@ -205,21 +205,42 @@ model Module {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  cohort Cohort       @relation(fields: [cohortId], references: [id], onDelete: Cascade)
-  steps  ModuleStep[]
+  cohort Cohort @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  weeks  Week[]
 
   @@index([cohortId, orderIndex])
 }
 
-// One unit of content within a Module — a Module is now a container of
-// steps, not content directly. type is a plain validated string, not a
-// Prisma enum, matching this schema's existing informal-enum convention
+// A grouping of ModuleSteps within a Module — lets the Modules list show
+// per-week cards (title, optional date range, description, progress) like
+// the reference design, instead of one flat list of steps per module.
+// startDate/endDate are nullable: most content isn't calendar-paced, so the
+// date-range badge only renders when a week actually has real dates.
+model Week {
+  id          String    @id @default(cuid())
+  moduleId    String
+  title       String
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  orderIndex  Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  module Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  steps  ModuleStep[]
+
+  @@index([moduleId, orderIndex])
+}
+
+// One unit of content within a Week — type is a plain validated string, not
+// a Prisma enum, matching this schema's existing informal-enum convention
 // (see TeamApplication.roleInterest, Module.videoProvider): "video" |
-// "text" | "file" | "quiz" today, easy to add more later without an
-// enum-altering migration.
+// "text" | "file" | "quiz" | "masterclass" today, easy to add more later
+// without an enum-altering migration.
 model ModuleStep {
   id         String @id @default(cuid())
-  moduleId   String
+  weekId     String
   type       String
   title      String
   orderIndex Int    @default(0)
@@ -230,14 +251,21 @@ model ModuleStep {
   videoId       String?
   audioUrl      String?
 
-  // type: "text"
+  // type: "text" — introMarkdown is a distinct, always-shown intro,
+  // separate from the PDF material below it so staff can clear pdfUrl
+  // once a cohort ends (e.g. a licensed reading) without losing the
+  // step's own writing. pdfUrl renders inline (an <iframe>, not just a
+  // download link) as soon as the step opens.
+  introMarkdown   String?
   contentMarkdown String?
+  pdfUrl          String?
+  pdfName         String?
 
   // type: "file"
   fileUrl  String?
   fileName String?
 
-  // type: "quiz" — { passingScore: number, questions: [{ id, prompt,
+  // type: "quiz", { passingScore: number, questions: [{ id, prompt,
   // options: [{ id, text, isCorrect }] }] }. JSON rather than relational
   // Quiz/Question/Option tables: no cross-quiz querying is needed, this is
   // small-scale Prisma-Studio-entered data, and a single JSON blob is
@@ -254,10 +282,10 @@ model ModuleStep {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  module   Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  week     Week           @relation(fields: [weekId], references: [id], onDelete: Cascade)
   progress StepProgress[]
 
-  @@index([moduleId, orderIndex])
+  @@index([weekId, orderIndex])
 }
 
 // One row per (user, step) once a student completes that step. For quiz

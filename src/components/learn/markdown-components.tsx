@@ -47,7 +47,7 @@ export const markdownComponents: Components = {
     if (isSoloImage) return <>{children}</>;
     return (
       <Reveal>
-        <p className="text-ink-muted" {...props}>
+        <p className="text-lg text-ink-muted" {...props}>
           {children}
         </p>
       </Reveal>
@@ -55,12 +55,12 @@ export const markdownComponents: Components = {
   },
   ul: ({ node: _node, ...props }) => (
     <Reveal>
-      <ul className="list-disc space-y-1 pl-5 text-ink-muted" {...props} />
+      <ul className="list-disc space-y-1 pl-5 text-lg text-ink-muted" {...props} />
     </Reveal>
   ),
   ol: ({ node: _node, ...props }) => (
     <Reveal>
-      <ol className="list-decimal space-y-1 pl-5 text-ink-muted" {...props} />
+      <ol className="list-decimal space-y-1 pl-5 text-lg text-ink-muted" {...props} />
     </Reveal>
   ),
   a: ({ node: _node, ...props }) => <a className="text-teal-deep underline hover:no-underline" {...props} />,

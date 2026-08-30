@@ -41,6 +41,7 @@ export type NextModuleInfo = { id: string; title: string; unlocked: boolean; unl
 // sidebar checkmarks and step counter update instantly without a reload.
 export function LessonViewer({
   steps,
+  weekLabelByStepId,
   initialCompletedStepIds,
   scoresByStepId,
   answersByStepId,
@@ -48,6 +49,7 @@ export function LessonViewer({
   nextModule,
 }: {
   steps: StepContentData[];
+  weekLabelByStepId?: Record<string, string>;
   initialCompletedStepIds: string[];
   scoresByStepId: Record<string, number | null>;
   answersByStepId: Record<string, Record<string, string> | null>;
@@ -127,27 +129,35 @@ export function LessonViewer({
             const Icon = TYPE_ICONS[step.type as keyof typeof TYPE_ICONS] ?? FileText;
             const done = completedStepIds.has(step.id);
             const active = step.id === activeStepId;
+            const weekLabel = weekLabelByStepId?.[step.id];
+            const showWeekHeader = weekLabel && weekLabel !== weekLabelByStepId?.[steps[index - 1]?.id ?? ""];
             return (
-              <button
-                key={step.id}
-                type="button"
-                onClick={() => goToStep(step.id)}
-                aria-current={active ? "step" : undefined}
-                className={`flex w-full items-center gap-2.5 rounded-lg p-2.5 text-left text-sm transition-colors ${
-                  active ? "bg-teal-deep/10" : "hover:bg-beige-panel"
-                }`}
-              >
-                <span className="font-mono-ledger text-xs text-ink/40">{String(index + 1).padStart(2, "0")}</span>
-                <Icon aria-hidden="true" className={`h-3.5 w-3.5 shrink-0 ${active ? "text-teal-deep" : "text-ink-muted"}`} />
-                <span className={`min-w-0 flex-1 truncate ${active ? "font-semibold text-teal-deep" : "text-ink"}`}>
-                  {step.title}
-                </span>
-                {done ? (
-                  <CheckCircle2 aria-label="Completed" className="h-4 w-4 shrink-0 text-teal-deep" />
-                ) : (
-                  <Circle aria-label="Not completed" className="h-4 w-4 shrink-0 text-ink/20" />
+              <div key={step.id}>
+                {showWeekHeader && (
+                  <p className={`px-2.5 pt-3 pb-1 font-mono-ledger text-[11px] font-semibold tracking-wide text-ink/40 uppercase ${index === 0 ? "pt-1" : ""}`}>
+                    {weekLabel}
+                  </p>
                 )}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => goToStep(step.id)}
+                  aria-current={active ? "step" : undefined}
+                  className={`flex w-full items-center gap-2.5 rounded-lg p-2.5 text-left text-sm transition-colors ${
+                    active ? "bg-teal-deep/10" : "hover:bg-beige-panel"
+                  }`}
+                >
+                  <span className="font-mono-ledger text-xs text-ink/40">{String(index + 1).padStart(2, "0")}</span>
+                  <Icon aria-hidden="true" className={`h-3.5 w-3.5 shrink-0 ${active ? "text-teal-deep" : "text-ink-muted"}`} />
+                  <span className={`min-w-0 flex-1 truncate ${active ? "font-semibold text-teal-deep" : "text-ink"}`}>
+                    {step.title}
+                  </span>
+                  {done ? (
+                    <CheckCircle2 aria-label="Completed" className="h-4 w-4 shrink-0 text-teal-deep" />
+                  ) : (
+                    <Circle aria-label="Not completed" className="h-4 w-4 shrink-0 text-ink/20" />
+                  )}
+                </button>
+              </div>
             );
           })}
         </nav>

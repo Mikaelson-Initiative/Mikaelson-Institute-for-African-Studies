@@ -20,7 +20,12 @@ export async function requireCohortAccess() {
         include: {
           modules: {
             orderBy: { orderIndex: "asc" },
-            include: { steps: { orderBy: { orderIndex: "asc" } } },
+            include: {
+              weeks: {
+                orderBy: { orderIndex: "asc" },
+                include: { steps: { orderBy: { orderIndex: "asc" } } },
+              },
+            },
           },
         },
       },

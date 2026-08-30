@@ -14,10 +14,10 @@ async function loadStepForAccessCheck(stepId: string) {
 
   const step = await prisma.moduleStep.findUnique({
     where: { id: stepId },
-    include: { module: true },
+    include: { week: { include: { module: true } } },
   });
 
-  if (!step || step.module.cohortId !== application.cohort!.id || step.module.unlockDate > new Date()) {
+  if (!step || step.week.module.cohortId !== application.cohort!.id || step.week.module.unlockDate > new Date()) {
     redirect("/ubuntu/modules");
   }
 
@@ -43,7 +43,7 @@ export async function markStepComplete(stepId: string) {
 
   revalidatePath("/ubuntu/space");
   revalidatePath("/ubuntu/modules");
-  revalidatePath(`/ubuntu/modules/${step.moduleId}`);
+  revalidatePath(`/ubuntu/modules/${step.week.moduleId}`);
 }
 
 export type SubmitQuizState = {
@@ -64,7 +64,7 @@ export async function submitQuiz(
   const { userId, step } = await loadStepForAccessCheck(stepId);
 
   if (step.type !== "quiz" || !step.quizData) {
-    redirect(`/ubuntu/modules/${step.moduleId}`);
+    redirect(`/ubuntu/modules/${step.week.moduleId}`);
   }
 
   const quizData = step.quizData as unknown as QuizData;
@@ -84,7 +84,7 @@ export async function submitQuiz(
 
   revalidatePath("/ubuntu/space");
   revalidatePath("/ubuntu/modules");
-  revalidatePath(`/ubuntu/modules/${step.moduleId}`);
+  revalidatePath(`/ubuntu/modules/${step.week.moduleId}`);
 
   return { score: result.score, total: result.total, perQuestion: result.perQuestion, answers };
 }

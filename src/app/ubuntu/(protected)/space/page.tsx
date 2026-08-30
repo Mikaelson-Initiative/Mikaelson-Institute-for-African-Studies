@@ -7,7 +7,7 @@ import { StaggerGroup, StaggerItem } from "@/components/motion/stagger";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { requireCohortAccess } from "@/lib/require-cohort-access";
-import { computeCohortStatus, getCompletedStepIds, type ModuleProgressStatus } from "@/lib/module-progress";
+import { computeCohortStatus, flattenModuleWeeks, getCompletedStepIds, type ModuleProgressStatus } from "@/lib/module-progress";
 
 export const metadata: Metadata = {
   title: "Space",
@@ -47,7 +47,7 @@ export default async function LearnSpacePage() {
   if (error || !session?.user?.id || !application) redirect("/ubuntu/login?denied=1");
 
   const cohort = application.cohort!;
-  const modules = cohort.modules;
+  const modules = cohort.modules.map(flattenModuleWeeks);
 
   const completedStepIds = await getCompletedStepIds(session.user.id, modules.map((m) => m.id));
   const status = computeCohortStatus(modules, completedStepIds);
