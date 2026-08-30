@@ -60,20 +60,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const applicantName = application.user.name ?? "there";
     await sendEmail({
       to: application.user.email,
-      subject: "You're in — welcome to Cohort 01",
+      subject: "You're in, welcome to Cohort 01",
       html: renderEmail({
-        preheader: "Your Cohort 01 application has been admitted — here's how to sign in.",
+        preheader: "Your Cohort 01 application has been admitted, here's how to sign in.",
         heading: "You've been admitted to Cohort 01",
         sections: [
           { type: "paragraph", text: `Hi ${escapeHtml(applicantName)},` },
           {
             type: "paragraph",
-            text: "Good news — your application to Mikaelson Institute's Cohort 01 has been admitted. You can sign in to the learning platform any time using this email address.",
+            text: "Good news, your application to Mikaelson Institute's Cohort 01 has been admitted. You can sign in to the learning platform any time using this email address.",
           },
           { type: "button", label: "Sign in to Ubuntu", url: LMS_SIGN_IN_URL },
           {
             type: "paragraph",
-            text: "We'll email you a one-time code each time you sign in — no password to remember.",
+            text: "We'll email you a one-time code each time you sign in, no password to remember.",
           },
         ],
       }),

@@ -24,7 +24,7 @@ export const cohortDonationTiers: CohortDonationTier[] = [
   {
     tier: "Library Builder",
     amount: 3_000,
-    impact: "You put real shelves and real books in front of real students — the library this cohort will learn from.",
+    impact: "You put real shelves and real books in front of real students, the library this cohort will learn from.",
     icon: Library,
     color: "text-teal-600",
     bg: "bg-teal-600/10",
@@ -32,7 +32,7 @@ export const cohortDonationTiers: CohortDonationTier[] = [
   {
     tier: "Institute Patron",
     amount: 5_000,
-    impact: "You become one of the people this Institute is built on — a name future cohorts will thank.",
+    impact: "You become one of the people this Institute is built on, a name future cohorts will thank.",
     icon: Star,
     color: "text-amber-500",
     bg: "bg-amber-500/10",

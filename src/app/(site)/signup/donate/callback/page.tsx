@@ -33,7 +33,7 @@ export default async function CohortDonationCallbackPage({
     completed: {
       icon: <CheckCircle2 className="h-12 w-12 text-emerald-600" />,
       title: "You're part of the story now.",
-      body: "Your contribution has been confirmed. We've emailed you a receipt — thank you for being part of Cohort 01.",
+      body: "Your contribution has been confirmed. We've emailed you a receipt, thank you for being part of Cohort 01.",
     },
     "already-completed": {
       icon: <CheckCircle2 className="h-12 w-12 text-emerald-600" />,
@@ -43,7 +43,7 @@ export default async function CohortDonationCallbackPage({
     failed: {
       icon: <XCircle className="h-12 w-12 text-red-600" />,
       title: "Payment wasn't completed.",
-      body: "Your card wasn't charged. Your application is still submitted either way — feel free to try again anytime.",
+      body: "Your card wasn't charged. Your application is still submitted either way, feel free to try again anytime.",
     },
     "not-found": {
       icon: <HelpCircle className="h-12 w-12 text-ink-muted" />,

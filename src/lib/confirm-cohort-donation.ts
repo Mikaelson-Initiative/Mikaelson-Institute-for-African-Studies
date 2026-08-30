@@ -46,7 +46,7 @@ export async function confirmCohortDonationPayment(reference: string): Promise<C
         { type: "paragraph", text: `Hi ${escapeHtml(donation.name)},` },
         {
           type: "paragraph",
-          text: `Your contribution of ${formatNaira(donation.amount)}${donation.tier ? ` (${escapeHtml(donation.tier)})` : ""} has been confirmed. Cohort 01 — and the library it's building toward — carries a little of you in it now. Thank you.`,
+          text: `Your contribution of ${formatNaira(donation.amount)}${donation.tier ? ` (${escapeHtml(donation.tier)})` : ""} has been confirmed. Cohort 01, and the library it's building toward, carries a little of you in it now. Thank you.`,
         },
       ],
     }),

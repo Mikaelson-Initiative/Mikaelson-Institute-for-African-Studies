@@ -23,7 +23,7 @@ export const globeMarkers: GlobeMarker[] = [
     region: "West Africa",
     lat: 14,
     lon: -4,
-    description: "A 13th–16th century West African empire renowned for its trade in gold and salt.",
+    description: "A 13th to 16th century West African empire renowned for its trade in gold and salt.",
   },
   {
     slug: "ghana-empire",

@@ -726,7 +726,7 @@ export default function SignupClient() {
                 You&apos;re one of us now.
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-                Your application is in — that part&apos;s done. But Cohort 01 is more than an admission, it&apos;s a
+                Your application is in, that part&apos;s done. But Cohort 01 is more than an admission, it&apos;s a
                 library still being built, one shelf at a time. If you&apos;d like, you can be part of building it too.
               </p>
 

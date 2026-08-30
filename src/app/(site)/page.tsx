@@ -18,7 +18,7 @@ import { heroConcernWords } from "@/lib/hero-concerns";
 export const metadata: Metadata = {
   title: { absolute: "Mikaelson Institute for African Studies" },
   description:
-    "A pan-African academic research institute publishing scholarship in history and decolonization, society and politics, arts and culture, and religion and philosophy — and home to Ubuntu, our free cohort-based learning program.",
+    "A pan-African academic research institute publishing scholarship in history and decolonization, society and politics, arts and culture, and religion and philosophy, and home to Ubuntu, our free cohort-based learning program.",
   alternates: { canonical: "/" },
 };
 
