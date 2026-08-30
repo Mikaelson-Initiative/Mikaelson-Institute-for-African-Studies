@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    // Static media under /public gets Vercel's default `max-age=0,
+    // must-revalidate` — every repeat visit re-downloads the hero/library
+    // videos and images from scratch. These are content-addressed by
+    // convention here (a changed asset gets a new filename, not an
+    // overwrite), so it's safe to cache them for a year.
+    const longLivedCache = { key: "Cache-Control", value: "public, max-age=31536000, immutable" };
+
     return [
       {
         source: "/:path*",
@@ -24,6 +31,12 @@ const nextConfig: NextConfig = {
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
         ],
       },
+      { source: "/hero/:path*", headers: [longLivedCache] },
+      { source: "/library/:path*", headers: [longLivedCache] },
+      { source: "/logos/:path*", headers: [longLivedCache] },
+      { source: "/team/:path*", headers: [longLivedCache] },
+      { source: "/images/:path*", headers: [longLivedCache] },
+      { source: "/framework/:path*", headers: [longLivedCache] },
     ];
   },
 };
