@@ -1,15 +1,18 @@
 "use client";
 
-import type { ContactMessage, Submission, CohortApplication, TeamMember, Partner, BookRecommendation, GalleryItem, LibraryContribution, TeamApplication, Cohort } from "@prisma/client";
+import type { ContactMessage, Submission, CohortApplication, TeamMember, Partner, BookRecommendation, GalleryItem, LibraryContribution, TeamApplication, Cohort, Module, Week, ModuleStep } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { signOut } from "next-auth/react";
-import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake, UserPlus, AlertCircle, Loader2 } from "lucide-react";
+import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake, UserPlus, AlertCircle, Loader2, GraduationCap } from "lucide-react";
 import { useState } from "react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
 
 type ApplicationWithUser = CohortApplication & { user: { name: string | null; email: string | null } };
+type WeekWithSteps = Week & { steps: ModuleStep[] };
+type ModuleWithWeeks = Module & { weeks: WeekWithSteps[] };
+type CohortWithModules = Cohort & { modules: ModuleWithWeeks[] };
 
-type Section = "overview" | "messages" | "submissions" | "applications" | "team" | "partners" | "books" | "gallery" | "library-support" | "team-applications";
+type Section = "overview" | "messages" | "submissions" | "applications" | "team" | "partners" | "books" | "gallery" | "library-support" | "team-applications" | "lms";
 
 const SUBMISSION_STATUSES = ["submitted", "in_review", "revisions_requested", "accepted", "rejected", "published"] as const;
 const CONTRIBUTION_STATUSES = ["pending", "completed", "failed"] as const;
@@ -44,7 +47,7 @@ export function AdminDashboardClient({
   galleryItems: GalleryItem[];
   libraryContributions: LibraryContribution[];
   teamApplications: TeamApplication[];
-  cohorts: Cohort[];
+  cohorts: CohortWithModules[];
 }) {
   const [section, setSection] = useState<Section>("overview");
   const [messages, setMessages] = useState(contactMessages);
@@ -57,6 +60,11 @@ export function AdminDashboardClient({
   const [gallery, setGallery] = useState(galleryItems);
   const [contributions, setContributions] = useState(libraryContributions);
   const [teamApps, setTeamApps] = useState(teamApplications);
+  const [cohortTree, setCohortTree] = useState(cohorts);
+  const [lmsModuleId, setLmsModuleId] = useState<string>(cohortTree[0]?.modules[0]?.id ?? "");
+  const [lmsWeekId, setLmsWeekId] = useState<string>("");
+  const [lmsStepId, setLmsStepId] = useState<string>("");
+  const [removePdf, setRemovePdf] = useState(false);
 
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [showPartnerForm, setShowPartnerForm] = useState(false);
@@ -280,6 +288,46 @@ export function AdminDashboardClient({
     if (res.ok) setGallery((prev) => prev.filter(g => g.id !== id));
   };
 
+  // --- LMS step intro/PDF ---
+
+  const selectedModule = cohortTree.flatMap((c) => c.modules).find((m) => m.id === lmsModuleId) ?? null;
+  const selectedWeek = selectedModule?.weeks.find((w) => w.id === lmsWeekId) ?? null;
+  const selectedStep = selectedWeek?.steps.find((s) => s.id === lmsStepId) ?? null;
+
+  const handleModuleStepSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedStep) return;
+    setIsSubmitting(true);
+    setCrudError(null);
+    const fd = new FormData(e.currentTarget);
+    if (removePdf) fd.set("removePdf", "true");
+
+    try {
+      const res = await fetch(`/api/admin/module-steps/${selectedStep.id}`, { method: "PATCH", body: fd });
+      if (res.ok) {
+        const saved = await res.json();
+        setCohortTree((prev) =>
+          prev.map((c) => ({
+            ...c,
+            modules: c.modules.map((m) => ({
+              ...m,
+              weeks: m.weeks.map((w) => ({
+                ...w,
+                steps: w.steps.map((s) => (s.id === saved.id ? saved : s)),
+              })),
+            })),
+          })),
+        );
+        setRemovePdf(false);
+      } else {
+        const error = await res.json().catch(() => null);
+        setCrudError(error?.error || "Couldn't save this step, try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-beige pb-40">
@@ -313,6 +361,7 @@ export function AdminDashboardClient({
                 <MetricCard title="Art Gallery" value={gallery.length} icon={<Camera className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("gallery")} />
                 <MetricCard title="Library Support" value={contributions.length} subtitle={`${contributions.filter(c => c.status === "pending").length} pending`} icon={<HeartHandshake className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("library-support")} />
                 <MetricCard title="Team Applications" value={teamApps.length} subtitle={`${teamApps.filter(a => !a.reviewed).length} unreviewed`} icon={<UserPlus className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("team-applications")} />
+                <MetricCard title="LMS Content" value={cohortTree.flatMap(c => c.modules).flatMap(m => m.weeks).flatMap(w => w.steps).length} subtitle="steps" icon={<GraduationCap className="h-5 w-5 text-ink-muted group-hover:text-teal-deep transition-colors" />} onClick={() => setSection("lms")} />
               </div>
             </motion.div>
           )}
@@ -718,6 +767,113 @@ export function AdminDashboardClient({
             </motion.div>
           )}
 
+          {section === "lms" && (
+            <motion.div key="lms" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+              <h2 className="mb-4 font-display text-lg font-semibold text-ink">LMS Content</h2>
+              <p className="mb-4 text-sm text-ink-muted">
+                Pick a step to edit its intro text or attach/replace/remove its inline PDF material.
+              </p>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div>
+                  <label className="text-xs font-semibold uppercase text-ink-muted">Module</label>
+                  <select
+                    value={lmsModuleId}
+                    onChange={(e) => { setLmsModuleId(e.target.value); setLmsWeekId(""); setLmsStepId(""); setCrudError(null); }}
+                    className="mt-1 w-full rounded border border-ink/10 bg-white px-3 py-2 text-sm focus:border-teal-deep focus:outline-none"
+                  >
+                    <option value="">Select a module</option>
+                    {cohortTree.flatMap((c) => c.modules).map((m) => (
+                      <option key={m.id} value={m.id}>{m.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase text-ink-muted">Week</label>
+                  <select
+                    value={lmsWeekId}
+                    onChange={(e) => { setLmsWeekId(e.target.value); setLmsStepId(""); setCrudError(null); }}
+                    disabled={!selectedModule}
+                    className="mt-1 w-full rounded border border-ink/10 bg-white px-3 py-2 text-sm focus:border-teal-deep focus:outline-none disabled:opacity-50"
+                  >
+                    <option value="">Select a week</option>
+                    {selectedModule?.weeks.map((w) => (
+                      <option key={w.id} value={w.id}>{w.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase text-ink-muted">Step</label>
+                  <select
+                    value={lmsStepId}
+                    onChange={(e) => { setLmsStepId(e.target.value); setRemovePdf(false); setCrudError(null); }}
+                    disabled={!selectedWeek}
+                    className="mt-1 w-full rounded border border-ink/10 bg-white px-3 py-2 text-sm focus:border-teal-deep focus:outline-none disabled:opacity-50"
+                  >
+                    <option value="">Select a step</option>
+                    {selectedWeek?.steps.map((s) => (
+                      <option key={s.id} value={s.id}>{s.title} ({s.type})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {selectedStep && (
+                <form key={selectedStep.id} onSubmit={handleModuleStepSubmit} className="mt-6 rounded-xl border border-ink/20 bg-white p-5 space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold uppercase text-ink-muted">Intro (shown above the PDF, always kept)</label>
+                    <textarea
+                      defaultValue={selectedStep.introMarkdown || ""}
+                      name="introMarkdown"
+                      rows={3}
+                      className="mt-1 w-full rounded border border-ink/10 px-3 py-2 text-sm focus:border-teal-deep focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold uppercase text-ink-muted">PDF Material</label>
+                    {selectedStep.pdfUrl ? (
+                      <p className="mt-1 flex items-center gap-2 text-sm text-ink">
+                        <FileText aria-hidden="true" className="h-4 w-4 text-ink-muted" />
+                        {selectedStep.pdfName || "Current PDF"}
+                        <a href={selectedStep.pdfUrl} target="_blank" rel="noreferrer" className="text-teal-deep hover:underline">View</a>
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-sm text-ink-muted">No PDF attached.</p>
+                    )}
+                    <input
+                      name="file"
+                      type="file"
+                      accept="application/pdf"
+                      disabled={removePdf}
+                      className="mt-2 w-full text-sm text-ink-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-deep/10 file:text-teal-deep hover:file:bg-teal-deep/20 disabled:opacity-50"
+                    />
+                    {selectedStep.pdfUrl && (
+                      <label className="mt-2 flex items-center gap-2 text-sm text-ink-muted">
+                        <input type="checkbox" checked={removePdf} onChange={(e) => setRemovePdf(e.target.checked)} />
+                        Remove the current PDF
+                      </label>
+                    )}
+                  </div>
+
+                  {crudError && (
+                    <p role="alert" className="flex items-center gap-2 text-sm font-medium text-red-600">
+                      <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
+                      {crudError}
+                    </p>
+                  )}
+
+                  <div className="flex justify-end">
+                    <button disabled={isSubmitting} type="submit" className="flex items-center gap-2 rounded bg-teal-deep px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                      {isSubmitting && <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />}
+                      {isSubmitting ? "Saving…" : "Save Step"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+          )}
+
           {section === "library-support" && (
             <motion.div key="library-support" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
               <h2 className="mb-4 font-display text-lg font-semibold text-ink">
@@ -862,6 +1018,12 @@ export function AdminDashboardClient({
             <DockLabel>Team Applications{teamApps.filter((a) => !a.reviewed).length > 0 ? ` (${teamApps.filter((a) => !a.reviewed).length})` : ""}</DockLabel>
             <DockIcon>
               <UserPlus className="h-full w-full text-ink-muted" />
+            </DockIcon>
+          </DockItem>
+          <DockItem className="aspect-square rounded-full bg-white" onClick={() => setSection("lms")} aria-pressed={section === "lms"}>
+            <DockLabel>LMS Content</DockLabel>
+            <DockIcon>
+              <GraduationCap className="h-full w-full text-ink-muted" />
             </DockIcon>
           </DockItem>
         </Dock>

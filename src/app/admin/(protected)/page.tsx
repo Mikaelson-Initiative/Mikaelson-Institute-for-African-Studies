@@ -36,7 +36,20 @@ export default async function AdminPage() {
     prisma.galleryItem.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.libraryContribution.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.teamApplication.findMany({ orderBy: { createdAt: "desc" } }),
-    prisma.cohort.findMany({ orderBy: { createdAt: "desc" } }),
+    prisma.cohort.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        modules: {
+          orderBy: { orderIndex: "asc" },
+          include: {
+            weeks: {
+              orderBy: { orderIndex: "asc" },
+              include: { steps: { orderBy: { orderIndex: "asc" } } },
+            },
+          },
+        },
+      },
+    }),
   ]);
 
   return (

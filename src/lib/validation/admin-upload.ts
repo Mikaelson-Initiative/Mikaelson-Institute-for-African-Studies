@@ -7,3 +7,6 @@ export const IMAGE_EXTENSION_BY_MIME: Record<string, string> = {
   "image/webp": "webp",
   "image/gif": "gif",
 };
+
+export const ACCEPTED_PDF_TYPES = ["application/pdf"];
+export const MAX_PDF_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
