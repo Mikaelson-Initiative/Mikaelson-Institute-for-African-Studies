@@ -3,6 +3,7 @@
 import type { ContactMessage, Submission, CohortApplication, TeamMember, Partner, BookRecommendation, GalleryItem, LibraryContribution, TeamApplication, Cohort, Module, Week, ModuleStep } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { signOut } from "next-auth/react";
+import Image from "next/image";
 import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake, UserPlus, AlertCircle, Loader2, GraduationCap } from "lucide-react";
 import { useState } from "react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
@@ -547,7 +548,7 @@ export function AdminDashboardClient({
                 {team.map((member) => (
                   <div key={member.id} className="rounded-xl border border-ink/10 bg-paper p-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      {member.image && <img src={member.image} alt={member.name || "Team member"} className="w-10 h-10 rounded-full object-cover bg-ink/5" />}
+                      {member.image && <Image src={member.image} alt={member.name || "Team member"} width={40} height={40} className="w-10 h-10 rounded-full object-cover bg-ink/5" />}
                       <div>
                         <p className="font-semibold text-ink">{member.name} <span className="text-ink-muted font-normal">, {member.role}</span></p>
                         <p className="text-xs text-ink-muted uppercase tracking-wide mt-1">Category: {member.category} | Index: {member.displayIndex}</p>
@@ -611,7 +612,7 @@ export function AdminDashboardClient({
                 {partnerList.map((partner) => (
                   <div key={partner.id} className="rounded-xl border border-ink/10 bg-paper p-4 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      {partner.logo && <img src={partner.logo} alt={partner.name || "Partner logo"} className="w-12 h-12 rounded object-contain bg-white" />}
+                      {partner.logo && <Image src={partner.logo} alt={partner.name || "Partner logo"} width={48} height={48} className="w-12 h-12 rounded object-contain bg-white" />}
                       <div>
                         <p className="font-semibold text-ink">{partner.name}</p>
                         {partner.type && <p className="text-sm text-ink-muted mt-1">{partner.type}</p>}
@@ -680,7 +681,7 @@ export function AdminDashboardClient({
                           <div key={book.id} className="rounded-xl border border-ink/10 bg-paper p-4 flex items-center justify-between gap-4">
                             <div className="flex items-start gap-4">
                               {book.imgUrl && (
-                                <img src={book.imgUrl} alt={book.title} className="w-12 h-16 object-cover rounded bg-ink/10" />
+                                <Image src={book.imgUrl} alt={book.title} width={48} height={64} className="w-12 h-16 object-cover rounded bg-ink/10" />
                               )}
                               <div>
                                 <p className="font-semibold text-ink">{book.title}</p>
@@ -749,7 +750,7 @@ export function AdminDashboardClient({
                 {gallery.map((item) => (
                   <div key={item.id} className="group relative rounded-xl border border-ink/10 bg-paper overflow-hidden">
                     <div className="aspect-square w-full bg-ink/5 relative">
-                      <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                      <Image src={item.imageUrl} alt={item.title} fill sizes="(min-width: 768px) 33vw, 50vw" className="object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                         <div className="absolute bottom-0 left-0 right-0 p-3">
                           <p className="font-semibold text-white text-sm truncate">{item.title}</p>
