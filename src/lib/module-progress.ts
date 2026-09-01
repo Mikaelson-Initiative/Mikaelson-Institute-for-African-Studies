@@ -93,6 +93,14 @@ export function computeCohortStatus(
   return "not_started";
 }
 
+// A week with no startDate (e.g. "Welcome to Ubuntu", which predates real
+// calendar pacing) is never locked by date — only the module's own
+// unlockDate gates it, same as before this check existed.
+export function isWeekLocked(week: { startDate: Date | null }, hasPreviewAccess = false): boolean {
+  if (hasPreviewAccess || !week.startDate) return false;
+  return week.startDate > new Date();
+}
+
 export type ModuleWithUnlock = ModuleWithSteps & { unlockDate: Date };
 
 // The module the "Continue Learning" CTA and the Modules list's "current"
@@ -102,9 +110,10 @@ export type ModuleWithUnlock = ModuleWithSteps & { unlockDate: Date };
 export function findResumeModule<T extends ModuleWithUnlock>(
   modules: T[],
   completedStepIds: ReadonlySet<string>,
+  unlockOverride = false,
 ): T | null {
   const now = new Date();
-  const unlocked = modules.filter((m) => m.unlockDate <= now);
+  const unlocked = modules.filter((m) => unlockOverride || m.unlockDate <= now);
   if (unlocked.length === 0) return null;
   const next = unlocked.find((m) => computeModuleProgress(m, completedStepIds).status !== "done");
   return next ?? unlocked[unlocked.length - 1];

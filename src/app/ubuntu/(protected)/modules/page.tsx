@@ -12,6 +12,7 @@ import {
   findResumeModule,
   flattenModuleWeeks,
   getCompletedStepIds,
+  isWeekLocked,
 } from "@/lib/module-progress";
 
 export const metadata: Metadata = {
@@ -38,7 +39,7 @@ export default async function LearnModulesPage({
   searchParams: Promise<{ module?: string }>;
 }) {
   const { module: requestedModuleId } = await searchParams;
-  const { session, application, error } = await requireCohortAccess();
+  const { session, application, hasPreviewAccess, error } = await requireCohortAccess();
   if (error || !session?.user?.id || !application) redirect("/ubuntu/login?denied=1");
 
   const cohort = application.cohort!;
@@ -46,7 +47,7 @@ export default async function LearnModulesPage({
   const flatModules = modules.map(flattenModuleWeeks);
 
   const completedStepIds = await getCompletedStepIds(session.user.id, modules.map((m) => m.id));
-  const resumeModule = findResumeModule(flatModules, completedStepIds);
+  const resumeModule = findResumeModule(flatModules, completedStepIds, hasPreviewAccess);
   const now = new Date();
 
   if (modules.length === 0) {
@@ -65,11 +66,12 @@ export default async function LearnModulesPage({
     ? requestedModuleId
     : resumeModule?.id ?? modules[0].id;
   const selectedModule = modules.find((m) => m.id === selectedId)!;
-  const selectedLocked = selectedModule.unlockDate > now;
+  const selectedLocked = !hasPreviewAccess && selectedModule.unlockDate > now;
 
   const currentWeekId = !selectedLocked
-    ? selectedModule.weeks.find((w) => computeWeekProgress(w, completedStepIds).status !== "done")?.id
-      ?? selectedModule.weeks[selectedModule.weeks.length - 1]?.id
+    ? selectedModule.weeks.find(
+        (w) => !isWeekLocked(w, hasPreviewAccess) && computeWeekProgress(w, completedStepIds).status !== "done",
+      )?.id ?? selectedModule.weeks[selectedModule.weeks.length - 1]?.id
     : null;
 
   return (
@@ -80,7 +82,7 @@ export default async function LearnModulesPage({
 
       <div className="mt-8">
         <ModuleSelect
-          modules={modules.map((m) => ({ id: m.id, title: m.title, locked: m.unlockDate > now }))}
+          modules={modules.map((m) => ({ id: m.id, title: m.title, locked: !hasPreviewAccess && m.unlockDate > now }))}
           selectedId={selectedId}
         />
       </div>
@@ -100,63 +102,87 @@ export default async function LearnModulesPage({
             </StaggerItem>
           )}
 
-          {selectedModule.weeks.map((week) => {
+          {selectedModule.weeks.map((week, index) => {
             const { completedSteps, totalSteps, status } = computeWeekProgress(week, completedStepIds);
-            const isCurrent = week.id === currentWeekId && status !== "done";
+            const weekLocked = isWeekLocked(week, hasPreviewAccess);
+            const isCurrent = !weekLocked && week.id === currentWeekId && status !== "done";
             const meta = describeSteps(week.steps);
             const hasDateRange = week.startDate && week.endDate;
+            // Only calendar-paced modules get a "Week N" label — "Welcome to
+            // Ubuntu" is a one-time onboarding flow, not a weekly curriculum.
+            const weekLabel = week.startDate ? `Week ${index + 1}` : null;
 
-            const cardClass = status === "done"
-              ? "border-ink/10 bg-beige-panel/70"
-              : isCurrent
-                ? "border-2 border-teal-deep bg-paper shadow-sm"
-                : "border-ink/10 bg-paper";
+            const cardClass = weekLocked
+              ? "border-ink/10 bg-paper/60"
+              : status === "done"
+                ? "border-ink/10 bg-beige-panel/70"
+                : isCurrent
+                  ? "border-2 border-teal-deep bg-paper shadow-sm"
+                  : "border-ink/10 bg-paper";
 
             return (
               <StaggerItem key={week.id}>
                 <div className={`rounded-2xl border p-6 transition-colors ${cardClass}`}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
-                      {hasDateRange && (
+                      {(weekLabel || hasDateRange) && (
                         <p className="font-mono-ledger text-xs text-ink-muted">
-                          {formatDateRange(week.startDate!, week.endDate!)}
+                          {weekLabel}
+                          {weekLabel && hasDateRange && " • "}
+                          {hasDateRange && formatDateRange(week.startDate!, week.endDate!)}
                         </p>
                       )}
                       <p className="mt-1 font-display text-xl font-semibold text-ink">{week.title}</p>
                       {week.description && <p className="mt-2 text-lg text-ink-muted">{week.description}</p>}
 
-                      <p className="mt-4 font-mono-ledger text-xs text-ink-muted">
-                        {completedSteps} / {totalSteps} steps{meta ? ` • ${meta}` : ""}
-                      </p>
-                      <div className="mt-2 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-ink/10">
-                        <div
-                          className="h-full bg-teal-deep transition-all duration-500 ease-out"
-                          style={{ width: `${Math.round((completedSteps / (totalSteps || 1)) * 100)}%` }}
-                        />
-                      </div>
+                      {weekLocked ? (
+                        <p className="mt-4 flex items-center gap-1.5 font-mono-ledger text-xs text-ink-muted">
+                          <Lock aria-hidden="true" className="h-3 w-3" />
+                          Unlocks {formatDate(week.startDate!)}
+                        </p>
+                      ) : (
+                        <>
+                          <p className="mt-4 font-mono-ledger text-xs text-ink-muted">
+                            {completedSteps} / {totalSteps} steps{meta ? ` • ${meta}` : ""}
+                          </p>
+                          <div className="mt-2 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-ink/10">
+                            <div
+                              className="h-full bg-teal-deep transition-all duration-500 ease-out"
+                              style={{ width: `${Math.round((completedSteps / (totalSteps || 1)) * 100)}%` }}
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <div className="shrink-0">
-                      <Link
-                        href={`/ubuntu/modules/${selectedModule.id}?week=${week.id}`}
-                        className={
-                          status === "done"
-                            ? "inline-flex items-center gap-1.5 rounded-full border border-teal-deep/30 px-3 py-1.5 text-xs font-semibold text-teal-deep"
-                            : "inline-flex items-center gap-1 rounded-full bg-teal-deep px-3.5 py-1.5 text-xs font-semibold text-white"
-                        }
-                      >
-                        {status === "done" ? (
-                          <>
-                            <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
-                            Review
-                          </>
-                        ) : (
-                          <>
-                            {status === "in_progress" ? "Resume" : "Start"}
-                            <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
-                          </>
-                        )}
-                      </Link>
+                      {weekLocked ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-ink/10 px-3 py-1.5 text-xs font-semibold text-ink-muted">
+                          <Lock aria-hidden="true" className="h-3.5 w-3.5" />
+                          Locked
+                        </span>
+                      ) : (
+                        <Link
+                          href={`/ubuntu/modules/${selectedModule.id}?week=${week.id}`}
+                          className={
+                            status === "done"
+                              ? "inline-flex items-center gap-1.5 rounded-full border border-teal-deep/30 px-3 py-1.5 text-xs font-semibold text-teal-deep"
+                              : "inline-flex items-center gap-1 rounded-full bg-teal-deep px-3.5 py-1.5 text-xs font-semibold text-white"
+                          }
+                        >
+                          {status === "done" ? (
+                            <>
+                              <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
+                              Review
+                            </>
+                          ) : (
+                            <>
+                              {status === "in_progress" ? "Resume" : "Start"}
+                              <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+                            </>
+                          )}
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>

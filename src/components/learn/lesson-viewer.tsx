@@ -42,6 +42,8 @@ export type NextModuleInfo = { id: string; title: string; unlocked: boolean; unl
 export function LessonViewer({
   steps,
   weekLabelByStepId,
+  lockedStepIds,
+  weekUnlockDateByStepId,
   initialCompletedStepIds,
   scoresByStepId,
   answersByStepId,
@@ -50,6 +52,8 @@ export function LessonViewer({
 }: {
   steps: StepContentData[];
   weekLabelByStepId?: Record<string, string>;
+  lockedStepIds?: string[];
+  weekUnlockDateByStepId?: Record<string, Date | null>;
   initialCompletedStepIds: string[];
   scoresByStepId: Record<string, number | null>;
   answersByStepId: Record<string, Record<string, string> | null>;
@@ -63,26 +67,30 @@ export function LessonViewer({
   const [reachedEnd, setReachedEnd] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  const lockedSet = new Set(lockedStepIds ?? []);
   const activeIndex = steps.findIndex((s) => s.id === activeStepId);
   const activeStep = activeIndex >= 0 ? steps[activeIndex] : null;
   const completedCount = steps.filter((s) => completedStepIds.has(s.id)).length;
   const isActiveCompleted = activeStep ? completedStepIds.has(activeStep.id) : false;
-  const isLastStep = activeIndex === steps.length - 1;
+  const nextStep = steps[activeIndex + 1] ?? null;
+  const nextStepLocked = nextStep ? lockedSet.has(nextStep.id) : false;
+  const nextWeekUnlockDate = nextStep ? weekUnlockDateByStepId?.[nextStep.id] ?? null : null;
+  const isLastAccessibleStep = !nextStep || nextStepLocked;
 
   function goToStep(stepId: string) {
+    if (lockedSet.has(stepId)) return;
     setActiveStepId(stepId);
     setReachedEnd(false);
     setSidebarOpen(false);
   }
 
   function advance() {
-    const next = steps[activeIndex + 1];
-    if (next) {
-      setActiveStepId(next.id);
+    if (nextStep && !nextStepLocked) {
+      setActiveStepId(nextStep.id);
       setSidebarOpen(false);
       return;
     }
-    if (nextModule?.unlocked) {
+    if (!nextStep && nextModule?.unlocked) {
       router.push(`/ubuntu/modules/${nextModule.id}`);
       return;
     }
@@ -129,6 +137,7 @@ export function LessonViewer({
             const Icon = TYPE_ICONS[step.type as keyof typeof TYPE_ICONS] ?? FileText;
             const done = completedStepIds.has(step.id);
             const active = step.id === activeStepId;
+            const locked = lockedSet.has(step.id);
             const weekLabel = weekLabelByStepId?.[step.id];
             const showWeekHeader = weekLabel && weekLabel !== weekLabelByStepId?.[steps[index - 1]?.id ?? ""];
             return (
@@ -141,9 +150,10 @@ export function LessonViewer({
                 <button
                   type="button"
                   onClick={() => goToStep(step.id)}
+                  disabled={locked}
                   aria-current={active ? "step" : undefined}
                   className={`flex w-full items-center gap-2.5 rounded-lg p-2.5 text-left text-sm transition-colors ${
-                    active ? "bg-teal-deep/10" : "hover:bg-beige-panel"
+                    active ? "bg-teal-deep/10" : locked ? "cursor-not-allowed opacity-50" : "hover:bg-beige-panel"
                   }`}
                 >
                   <span className="font-mono-ledger text-xs text-ink/40">{String(index + 1).padStart(2, "0")}</span>
@@ -151,7 +161,9 @@ export function LessonViewer({
                   <span className={`min-w-0 flex-1 truncate ${active ? "font-semibold text-teal-deep" : "text-ink"}`}>
                     {step.title}
                   </span>
-                  {done ? (
+                  {locked ? (
+                    <Lock aria-label="Locked" className="h-4 w-4 shrink-0 text-ink/30" />
+                  ) : done ? (
                     <CheckCircle2 aria-label="Completed" className="h-4 w-4 shrink-0 text-teal-deep" />
                   ) : (
                     <Circle aria-label="Not completed" className="h-4 w-4 shrink-0 text-ink/20" />
@@ -207,23 +219,30 @@ export function LessonViewer({
             </Button>
           )}
 
-          {activeStep && isActiveCompleted && !isLastStep && (
+          {activeStep && isActiveCompleted && !isLastAccessibleStep && (
             <Button type="button" variant="primary" onClick={advance} className="text-sm">
               Next Step
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Button>
           )}
 
-          {activeStep && isActiveCompleted && isLastStep && !reachedEnd && (
+          {activeStep && isActiveCompleted && isLastAccessibleStep && !reachedEnd && (
             <Button type="button" variant="primary" onClick={advance} className="text-sm">
-              {nextModule?.unlocked ? "Go to Next Module" : "Finish Module"}
+              {nextStepLocked ? "Done for Now" : nextModule?.unlocked ? "Go to Next Module" : "Finish Module"}
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Button>
           )}
         </div>
 
         {reachedEnd &&
-          (nextModule ? (
+          (nextStepLocked ? (
+            <div className="mt-4 rounded-2xl border border-ink/10 bg-paper p-6 text-center">
+              <p className="flex items-center justify-center gap-2 text-sm text-ink-muted">
+                <Lock aria-hidden="true" className="h-4 w-4" />
+                Next week unlocks {nextWeekUnlockDate ? formatDate(nextWeekUnlockDate) : "soon"}
+              </p>
+            </div>
+          ) : nextModule ? (
             <div className="mt-4 rounded-2xl border border-ink/10 bg-paper p-6 text-center">
               <p className="flex items-center justify-center gap-2 text-sm text-ink-muted">
                 <Lock aria-hidden="true" className="h-4 w-4" />

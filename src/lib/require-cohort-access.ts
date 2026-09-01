@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { hasLmsPreviewAccess } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
 // Single source of truth for "is this request from an admitted cohort
@@ -10,8 +11,10 @@ import { prisma } from "@/lib/prisma";
 export async function requireCohortAccess() {
   const session = await auth();
   if (!session?.user?.id) {
-    return { session: null, application: null, error: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
+    return { session: null, application: null, hasPreviewAccess: false, error: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
   }
+
+  const hasPreviewAccess = hasLmsPreviewAccess(session.user.email);
 
   const application = await prisma.cohortApplication.findUnique({
     where: { userId: session.user.id },
@@ -33,8 +36,8 @@ export async function requireCohortAccess() {
   });
 
   if (!application || application.status !== "admitted" || !application.cohort) {
-    return { session, application: null, error: NextResponse.json({ error: "not_admitted" }, { status: 403 }) };
+    return { session, application: null, hasPreviewAccess, error: NextResponse.json({ error: "not_admitted" }, { status: 403 }) };
   }
 
-  return { session, application, error: null };
+  return { session, application, hasPreviewAccess, error: null };
 }
