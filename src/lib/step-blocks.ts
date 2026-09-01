@@ -206,6 +206,45 @@ export type LinksBlock = {
   items: LinkItem[];
 };
 
+// An illustration slot. `src` is deliberately optional — when the artwork
+// hasn't been generated yet, this renders as a clearly-labeled placeholder
+// (alt/caption only) rather than a broken image or an invented URL.
+// `genPrompt` carries the original image-generation brief so it survives
+// until the artwork is actually produced; it is never shown to students.
+export type ImageBlock = {
+  type: "image";
+  alt: string;
+  caption?: string;
+  src?: string;
+  genPrompt?: string;
+};
+
+// A simple data grid — e.g. "which crops grow in which ecological zone."
+// Renders as a real <table> on wide screens and a stacked card list on
+// narrow ones (a grid this dense doesn't survive horizontal scrolling well).
+export type TableBlock = {
+  type: "table";
+  heading?: string;
+  columns: string[];
+  rows: string[][];
+};
+
+// One tappable location on a MapBlock — x/y are percentages (0-100) within
+// the map's viewBox, not real coordinates, since the map itself is a
+// simplified illustrative outline, not an accurate projection.
+export type MapPin = {
+  label: string;
+  x: number;
+  y: number;
+  detail: string;
+};
+
+export type MapBlock = {
+  type: "map";
+  heading?: string;
+  pins: MapPin[];
+};
+
 export type StepBlock =
   | ProseBlock
   | QuoteBlock
@@ -220,4 +259,7 @@ export type StepBlock =
   | TemplateBlock
   | ActionCardBlock
   | FaqBlock
-  | LinksBlock;
+  | LinksBlock
+  | ImageBlock
+  | TableBlock
+  | MapBlock;

@@ -2,7 +2,7 @@
 
 import { Fragment, useActionState, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { CheckCircle2, Copy } from "lucide-react";
+import { CheckCircle2, Copy, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { markdownComponents } from "@/components/learn/markdown-components";
 import { submitPoll, submitReflection } from "@/app/ubuntu/(protected)/modules/[id]/actions";
@@ -12,7 +12,9 @@ import type {
   CalloutBlock,
   ComparisonBlock,
   FaqBlock,
+  ImageBlock,
   LinksBlock,
+  MapBlock,
   ManifestoBlock,
   PillarAccent,
   PillarItem,
@@ -22,6 +24,7 @@ import type {
   ReflectionAnswers,
   RoadmapBlock,
   StepBlock,
+  TableBlock,
   TemplateBlock,
 } from "@/lib/step-blocks";
 
@@ -546,6 +549,105 @@ function LinksBlockView({ heading, intro, items }: LinksBlock) {
   );
 }
 
+// `src` absent (artwork not generated yet) renders a clearly-labeled
+// placeholder instead of a broken image or a guessed URL.
+function ImageBlockView({ alt, caption, src }: ImageBlock) {
+  return (
+    <figure>
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element -- variable-source generated illustrations; next/image would need every domain pre-registered
+        <img src={src} alt={alt} className="w-full rounded-2xl border border-ink/10 object-cover" loading="lazy" />
+      ) : (
+        <div className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-ink/20 bg-beige-panel/60 p-6 text-center">
+          <ImageIcon aria-hidden="true" className="h-6 w-6 text-ink-muted" />
+          <p className="text-sm font-medium text-ink-muted">Illustration coming soon</p>
+          <p className="max-w-md text-xs text-ink-muted/80">{alt}</p>
+        </div>
+      )}
+      {caption && <figcaption className="mt-2 text-center text-sm italic text-ink-muted/80">{caption}</figcaption>}
+    </figure>
+  );
+}
+
+function TableBlockView({ heading, columns, rows }: TableBlock) {
+  return (
+    <div>
+      {heading && <h3 className="font-display text-xl font-semibold text-ink">{heading}</h3>}
+      <div className={`overflow-x-auto rounded-2xl border border-ink/10 ${heading ? "mt-6" : ""}`}>
+        <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+          <thead>
+            <tr className="bg-teal-deep/5">
+              {columns.map((column) => (
+                <th key={column} className="border-b border-ink/10 p-4 font-semibold text-ink">
+                  {column}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, rowIndex) => (
+              <tr key={rowIndex} className={rowIndex % 2 === 1 ? "bg-beige-panel/40" : undefined}>
+                {row.map((cell, cellIndex) => (
+                  <td key={cellIndex} className="border-b border-ink/10 p-4 align-top leading-relaxed text-ink-muted">
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// A simplified, illustrative continent outline (not a survey-accurate
+// projection) used purely as a backdrop for tappable pins — pin.x/y are
+// percentages within this same 100x110 viewBox, not real coordinates.
+const AFRICA_OUTLINE_PATH =
+  "M20,8 C35,3 55,3 65,8 C78,10 88,20 90,32 C93,38 93,45 88,42 C80,38 78,45 82,52 C86,60 84,68 78,72 C74,80 72,90 68,98 C64,105 58,108 52,107 C47,106 46,100 44,94 C40,85 36,80 32,72 C26,62 20,55 15,48 C8,40 4,32 6,25 C8,18 12,10 20,8 Z";
+
+function MapBlockView({ heading, pins }: MapBlock) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const active = activeIndex !== null ? pins[activeIndex] : null;
+
+  return (
+    <div>
+      {heading && <h3 className="font-display text-xl font-semibold text-ink">{heading}</h3>}
+      <div className={`grid gap-4 sm:grid-cols-[1fr_260px] ${heading ? "mt-6" : ""}`}>
+        <div className="relative overflow-hidden rounded-2xl border border-ink/10 bg-beige-panel" style={{ aspectRatio: "100 / 110" }}>
+          <svg viewBox="0 0 100 110" className="absolute inset-0 h-full w-full" aria-hidden="true">
+            <path d={AFRICA_OUTLINE_PATH} className="fill-teal-deep/10 stroke-teal-deep/40" strokeWidth={1} />
+          </svg>
+          {pins.map((pin, index) => (
+            <button
+              key={pin.label}
+              type="button"
+              onClick={() => setActiveIndex(index)}
+              style={{ left: `${pin.x}%`, top: `${(pin.y / 110) * 100}%` }}
+              aria-label={pin.label}
+              aria-pressed={activeIndex === index}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-paper shadow-sm transition-transform hover:scale-125 ${
+                activeIndex === index ? "h-5 w-5 scale-110 bg-yellow" : "h-4 w-4 bg-teal-deep"
+              }`}
+            />
+          ))}
+        </div>
+        <div className="rounded-2xl border border-ink/10 bg-paper p-4">
+          {active ? (
+            <>
+              <p className="font-semibold text-ink">{active.label}</p>
+              <p className="mt-2 text-sm leading-relaxed text-ink-muted">{active.detail}</p>
+            </>
+          ) : (
+            <p className="text-sm text-ink-muted">Tap a pin to see the fossil discovery.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // The "Living Canvas" reader: renders a step's contentBlocks in order, with
 // a quiet divider between them. Each block type owns its own layout and
 // never breaks out of this component's switch — callers just hand it the
@@ -578,6 +680,9 @@ export function StepBlocks({
           {block.type === "actionCard" && <ActionCardBlockView {...block} />}
           {block.type === "faq" && <FaqBlockView {...block} />}
           {block.type === "links" && <LinksBlockView {...block} />}
+          {block.type === "image" && <ImageBlockView {...block} />}
+          {block.type === "table" && <TableBlockView {...block} />}
+          {block.type === "map" && <MapBlockView {...block} />}
           {block.type === "reflection" && (
             <ReflectionBlockView
               {...block}

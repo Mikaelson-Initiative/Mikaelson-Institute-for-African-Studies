@@ -168,6 +168,9 @@ export function StepContent({
               )}
             </div>
           ))}
+          {step.contentBlocks && step.contentBlocks.length > 0 && (
+            <StepBlocks blocks={step.contentBlocks} stepId={step.id} answers={answers} onGraded={onGraded} />
+          )}
         </div>
       ) : (
         <p className="text-sm text-ink-muted">No masterclass has been scheduled for this step yet.</p>
