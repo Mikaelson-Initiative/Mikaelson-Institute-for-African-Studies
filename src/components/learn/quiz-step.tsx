@@ -69,18 +69,23 @@ export function QuizStep({
               ))}
             </div>
             {questionResult && (
-              <p
-                className={`flex items-center gap-1.5 text-xs font-semibold ${
-                  questionResult.correct ? "text-teal-deep" : "text-red-600"
-                }`}
-              >
-                {questionResult.correct ? (
-                  <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
-                ) : (
-                  <XCircle aria-hidden="true" className="h-3.5 w-3.5" />
+              <div>
+                <p
+                  className={`flex items-center gap-1.5 text-xs font-semibold ${
+                    questionResult.correct ? "text-teal-deep" : "text-red-600"
+                  }`}
+                >
+                  {questionResult.correct ? (
+                    <CheckCircle2 aria-hidden="true" className="h-3.5 w-3.5" />
+                  ) : (
+                    <XCircle aria-hidden="true" className="h-3.5 w-3.5" />
+                  )}
+                  {questionResult.correct ? "Correct" : "Incorrect"}
+                </p>
+                {questionResult.feedback && (
+                  <p className="mt-1 text-sm text-ink-muted">{questionResult.feedback}</p>
                 )}
-                {questionResult.correct ? "Correct" : "Incorrect"}
-              </p>
+              </div>
             )}
           </fieldset>
         );

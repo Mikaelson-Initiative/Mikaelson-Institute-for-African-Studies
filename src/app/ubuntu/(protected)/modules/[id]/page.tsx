@@ -6,8 +6,10 @@ import { SetBreadcrumb } from "@/components/learn/breadcrumb-context";
 import { LessonViewer, type NextModuleInfo } from "@/components/learn/lesson-viewer";
 import type { StepContentData } from "@/components/learn/step-content";
 import { prisma } from "@/lib/prisma";
+import { isWeekLocked } from "@/lib/module-progress";
 import { requireCohortAccess } from "@/lib/require-cohort-access";
 import { sanitizeQuizForClient, type QuizData } from "@/lib/quiz";
+import type { StepBlock } from "@/lib/step-blocks";
 
 export const metadata: Metadata = {
   title: "Module",
@@ -25,7 +27,7 @@ export default async function LearnModulePage({
 }) {
   const { id } = await params;
   const { week: requestedWeekId } = await searchParams;
-  const { session, application, error } = await requireCohortAccess();
+  const { session, application, hasPreviewAccess, error } = await requireCohortAccess();
   if (error || !session?.user?.id || !application) redirect("/ubuntu/login?denied=1");
 
   const learningModule = application.cohort!.modules.find((m) => m.id === id);
@@ -33,19 +35,36 @@ export default async function LearnModulePage({
   // A module belonging to a different cohort, or not yet unlocked, is
   // treated as not existing — a 404 doesn't leak whether the ID is valid
   // elsewhere or unlock at a different time, unlike a distinct redirect would.
-  if (!learningModule || learningModule.unlockDate > new Date()) {
+  // hasPreviewAccess (LMS_PREVIEW_EMAILS) bypasses the unlock gate entirely.
+  if (!learningModule || (!hasPreviewAccess && learningModule.unlockDate > new Date())) {
     notFound();
   }
 
   // Steps stay a flat, ordered list across weeks — the lesson viewer's
   // single-active-step navigation is unchanged; weeks only add a group
-  // label per step for the sidebar.
+  // label per step for the sidebar. A week whose startDate hasn't arrived
+  // yet locks its own steps even though the module itself is unlocked —
+  // hasPreviewAccess bypasses this the same way it bypasses module locks.
   const weeks = learningModule.weeks;
   const allSteps = weeks.flatMap((w) => w.steps);
   const weekLabelByStepId: Record<string, string> = {};
-  for (const w of weeks) {
-    for (const s of w.steps) weekLabelByStepId[s.id] = w.title;
-  }
+  const lockedStepIds: string[] = [];
+  const weekUnlockDateByStepId: Record<string, Date | null> = {};
+  weeks.forEach((w, weekIndex) => {
+    // Only calendar-paced modules (real startDate) get a "Week N" prefix —
+    // "Welcome to Ubuntu" is a one-time onboarding flow, not a weekly
+    // curriculum, so its sections stay plain titles.
+    const label = w.startDate ? `Week ${weekIndex + 1}: ${w.title}` : w.title;
+    const locked = isWeekLocked(w, hasPreviewAccess);
+    for (const s of w.steps) {
+      weekLabelByStepId[s.id] = label;
+      if (locked) {
+        lockedStepIds.push(s.id);
+        weekUnlockDateByStepId[s.id] = w.startDate;
+      }
+    }
+  });
+  const lockedStepIdSet = new Set(lockedStepIds);
 
   const stepIds = allSteps.map((s) => s.id);
   const stepProgress = await prisma.stepProgress.findMany({
@@ -61,7 +80,7 @@ export default async function LearnModulePage({
     ? {
         id: nextModuleRaw.id,
         title: nextModuleRaw.title,
-        unlocked: nextModuleRaw.unlockDate <= new Date(),
+        unlocked: hasPreviewAccess || nextModuleRaw.unlockDate <= new Date(),
         unlockDate: nextModuleRaw.unlockDate,
       }
     : null;
@@ -73,8 +92,11 @@ export default async function LearnModulePage({
   // available on a revisit.
   const requestedWeek = requestedWeekId ? weeks.find((w) => w.id === requestedWeekId) : null;
   const searchScope = requestedWeek?.steps ?? allSteps;
-  const firstIncomplete = searchScope.find((s) => !completedStepIdSet.has(s.id));
-  const initialActiveStepId = (firstIncomplete ?? searchScope[searchScope.length - 1])?.id ?? null;
+  const firstAccessibleIncomplete = searchScope.find(
+    (s) => !completedStepIdSet.has(s.id) && !lockedStepIdSet.has(s.id),
+  );
+  const lastAccessible = [...searchScope].reverse().find((s) => !lockedStepIdSet.has(s.id));
+  const initialActiveStepId = (firstAccessibleIncomplete ?? lastAccessible ?? searchScope[0])?.id ?? null;
 
   const scoresByStepId: Record<string, number | null> = {};
   const answersByStepId: Record<string, Record<string, string> | null> = {};
@@ -94,6 +116,7 @@ export default async function LearnModulePage({
     audioUrl: step.audioUrl,
     introMarkdown: step.introMarkdown,
     contentMarkdown: step.contentMarkdown,
+    contentBlocks: step.contentBlocks as StepBlock[] | null,
     pdfUrl: step.pdfUrl,
     pdfName: step.pdfName,
     fileUrl: step.fileUrl,
@@ -110,7 +133,7 @@ export default async function LearnModulePage({
         <SectionLabel>{application.cohort!.title}</SectionLabel>
         <h1 className="mt-3 font-display text-4xl font-semibold text-ink sm:text-5xl">{learningModule.title}</h1>
         {learningModule.description && (
-          <p className="mt-3 max-w-3xl text-lg text-ink-muted">{learningModule.description}</p>
+          <p className="mt-3 max-w-3xl whitespace-pre-line text-lg text-ink-muted">{learningModule.description}</p>
         )}
       </Reveal>
 
@@ -118,6 +141,8 @@ export default async function LearnModulePage({
         <LessonViewer
           steps={stepsForViewer}
           weekLabelByStepId={weekLabelByStepId}
+          lockedStepIds={lockedStepIds}
+          weekUnlockDateByStepId={weekUnlockDateByStepId}
           initialCompletedStepIds={completedStepIds}
           scoresByStepId={scoresByStepId}
           answersByStepId={answersByStepId}

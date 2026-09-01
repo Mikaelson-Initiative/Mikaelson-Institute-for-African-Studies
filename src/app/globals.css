@@ -108,3 +108,20 @@ body {
   .fan-layout { height: 55rem; }
   .fan-card   { width: 22rem; height: 33rem; border-radius: 1rem; }
 }
+
+/* Living Canvas hero-quote block (src/components/learn/step-blocks.tsx) —
+   a subtle abstract geometric texture behind the quote, not a specific
+   cultural symbol, kept low-opacity so it never competes with the text. */
+.step-quote-pattern::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--mias-turquoise) 0,
+    var(--mias-turquoise) 2px,
+    transparent 2px,
+    transparent 16px
+  );
+}

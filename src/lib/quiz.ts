@@ -1,5 +1,8 @@
 export type QuizOption = { id: string; text: string; isCorrect: boolean };
-export type QuizQuestion = { id: string; prompt: string; options: QuizOption[] };
+// `feedback` is shown once the student answers this question correctly —
+// kept out of SanitizedQuizData (like isCorrect) since the text itself would
+// often give away the right answer if read before submitting.
+export type QuizQuestion = { id: string; prompt: string; options: QuizOption[]; feedback?: string };
 export type QuizData = { passingScore?: number; questions: QuizQuestion[] };
 
 export type SanitizedQuizOption = { id: string; text: string };
@@ -25,14 +28,15 @@ export function sanitizeQuizForClient(quizData: QuizData): SanitizedQuizData {
 export type QuizGradeResult = {
   score: number;
   total: number;
-  perQuestion: { questionId: string; correct: boolean }[];
+  perQuestion: { questionId: string; correct: boolean; feedback?: string }[];
 };
 
 export function gradeQuiz(quizData: QuizData, answers: Record<string, string>): QuizGradeResult {
   const perQuestion = quizData.questions.map((question) => {
     const selectedOptionId = answers[question.id];
     const selectedOption = question.options.find((option) => option.id === selectedOptionId);
-    return { questionId: question.id, correct: selectedOption?.isCorrect === true };
+    const correct = selectedOption?.isCorrect === true;
+    return { questionId: question.id, correct, feedback: correct ? question.feedback : undefined };
   });
 
   return {

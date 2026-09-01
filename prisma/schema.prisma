@@ -270,6 +270,15 @@ model ModuleStep {
   // Quiz/Question/Option tables: no cross-quiz querying is needed, this is
   // small-scale Prisma-Studio-entered data, and a single JSON blob is
   // easier to hand-edit there than three joined tables would be.
+  // type: "text" — a structured, richly-rendered alternative to plain
+  // contentMarkdown: an ordered array of typed blocks (prose/quote/pillars,
+  // see src/components/learn/step-blocks.tsx), rendered as the "Living
+  // Canvas" reader instead of a markdown wall of text. When present and
+  // non-empty, it supersedes introMarkdown/contentMarkdown/pdfUrl for that
+  // step; when absent, the step falls back to the plain markdown renderer
+  // unchanged.
+  contentBlocks Json?
+
   quizData Json?
 
   // type: "masterclass" — array of { startsAt: ISO string, title,

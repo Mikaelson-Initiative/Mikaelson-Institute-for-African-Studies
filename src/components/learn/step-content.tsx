@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { markdownComponents } from "@/components/learn/markdown-components";
 import { isValidYouTubeId } from "@/lib/youtube";
 import { QuizStep } from "@/components/learn/quiz-step";
+import { StepBlocks } from "@/components/learn/step-blocks";
 import type { SanitizedQuizData } from "@/lib/quiz";
+import type { StepBlock } from "@/lib/step-blocks";
 
 const YouTubePlayer = dynamic(() =>
   import("@/components/learn/youtube-player").then((mod) => mod.YouTubePlayer),
@@ -32,6 +34,7 @@ export type StepContentData = {
   audioUrl: string | null;
   introMarkdown: string | null;
   contentMarkdown: string | null;
+  contentBlocks: StepBlock[] | null;
   pdfUrl: string | null;
   pdfName: string | null;
   fileUrl: string | null;
@@ -65,8 +68,11 @@ export function StepContent({
 }: {
   step: StepContentData;
   score: number | null;
-  answers: Record<string, string> | null;
-  onGraded?: (result: { score: number; total: number }) => void;
+  // Raw StepProgress.answers for this step — a quiz's { [questionId]:
+  // optionId } record, a reflection's { text, pledge } shape, or null.
+  // Each step type below casts it to whichever shape it actually expects.
+  answers: unknown;
+  onGraded?: (result?: { score: number; total: number }) => void;
 }) {
   switch (step.type) {
     case "video":
@@ -81,25 +87,38 @@ export function StepContent({
             <p className="text-sm text-ink-muted">No video has been added to this step yet.</p>
           )}
           {step.audioUrl && <audio controls className="mt-4 w-full" src={step.audioUrl} />}
+          {step.contentBlocks && step.contentBlocks.length > 0 && (
+            <div className="mt-6">
+              <StepBlocks blocks={step.contentBlocks} stepId={step.id} answers={answers} onGraded={onGraded} />
+            </div>
+          )}
         </div>
       );
 
     case "text":
       return (
-        <div className="max-w-3xl space-y-4 text-lg leading-relaxed text-ink">
+        <div className="space-y-6">
           {step.introMarkdown && (
-            <ReactMarkdown components={markdownComponents}>{step.introMarkdown}</ReactMarkdown>
+            <div className="max-w-3xl space-y-4 text-lg leading-relaxed text-ink">
+              <ReactMarkdown components={markdownComponents}>{step.introMarkdown}</ReactMarkdown>
+            </div>
           )}
-          {step.pdfUrl && (
-            <iframe
-              src={step.pdfUrl}
-              title={step.pdfName ?? "Material"}
-              className="h-[70vh] w-full rounded-2xl border border-ink/10"
-            />
+          {step.contentBlocks && step.contentBlocks.length > 0 ? (
+            <StepBlocks blocks={step.contentBlocks} stepId={step.id} answers={answers} onGraded={onGraded} />
+          ) : (
+            <div className="max-w-3xl space-y-4 text-lg leading-relaxed text-ink">
+              {step.pdfUrl && (
+                <iframe
+                  src={step.pdfUrl}
+                  title={step.pdfName ?? "Material"}
+                  className="h-[70vh] w-full rounded-2xl border border-ink/10"
+                />
+              )}
+              <ReactMarkdown components={markdownComponents}>
+                {step.contentMarkdown || "Content for this module has not been added yet."}
+              </ReactMarkdown>
+            </div>
           )}
-          <ReactMarkdown components={markdownComponents}>
-            {step.contentMarkdown || "Content for this module has not been added yet."}
-          </ReactMarkdown>
         </div>
       );
 
@@ -119,7 +138,7 @@ export function StepContent({
           stepId={step.id}
           quizData={step.quizData as SanitizedQuizData}
           previousScore={score}
-          previousAnswers={answers}
+          previousAnswers={answers as Record<string, string> | null}
           onGraded={onGraded}
         />
       );
