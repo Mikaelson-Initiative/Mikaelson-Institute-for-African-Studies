@@ -9,11 +9,53 @@ import { Button } from "@/components/ui/button";
 type Step = "name" | "contact" | "role" | "availability" | "experience" | "motivation" | "success";
 
 const ROLE_CHOICES = [
-  { value: "research-editorial", label: "Research & Editorial" },
-  { value: "design-technology", label: "Design & Technology" },
-  { value: "community-outreach", label: "Community & Outreach" },
-  { value: "operations-admin", label: "Operations & Administration" },
-  { value: "other", label: "Other" },
+  {
+    value: "curriculum-historian",
+    label: "Curriculum Historian / Content Lead",
+    description:
+      "Research and write accurate, in-depth module content, and review historical claims before they go live.",
+  },
+  {
+    value: "instructional-designer",
+    label: "Instructional Designer",
+    description:
+      "Turn content into effective learning experiences: pacing, quizzes, learning objectives, and assessment design.",
+  },
+  {
+    value: "fullstack-engineer",
+    label: "Full-Stack Engineer",
+    description:
+      "Build and maintain the LMS platform, our content system, and the tools that power it.",
+  },
+  {
+    value: "community-cohort-manager",
+    label: "Community & Cohort Manager",
+    description:
+      "Run student cohorts, moderate live masterclasses, and support learners through the program.",
+  },
+  {
+    value: "operations-program-lead",
+    label: "Operations & Program Lead",
+    description:
+      "Own the release calendar and coordinate across teams so the program ships on schedule.",
+  },
+  {
+    value: "social-media-manager",
+    label: "Social Media Manager",
+    description:
+      "Grow our audience across social platforms and help tell the Institute's story.",
+  },
+  {
+    value: "academic-partnerships-lead",
+    label: "Academic Partnerships Lead",
+    description:
+      "Build relationships with universities and African studies departments, and source masterclass speakers.",
+  },
+  {
+    value: "other",
+    label: "Other",
+    description: "Something else you'd like to help with.",
+  },
 ];
 
 export default function JoinTeamClient() {
@@ -260,14 +302,15 @@ export default function JoinTeamClient() {
                   Where would you like to contribute?
                 </h2>
               </div>
-              <div className="flex flex-col gap-3 w-full">
+              <div className="flex max-h-[26rem] w-full flex-col gap-3 overflow-y-auto pr-1">
                 {ROLE_CHOICES.map((choice) => (
                   <button
                     key={choice.value}
                     onClick={() => handleRole(choice.value)}
-                    className={`w-full rounded-xl border px-5 py-4 text-center font-medium text-ink transition-all hover:border-teal-deep hover:bg-teal-deep/5 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none ${roleInterest === choice.value ? "border-teal-deep bg-teal-deep/5" : "border-ink/10 bg-white"}`}
+                    className={`w-full rounded-xl border px-5 py-3.5 text-left transition-all hover:border-teal-deep hover:bg-teal-deep/5 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none ${roleInterest === choice.value ? "border-teal-deep bg-teal-deep/5" : "border-ink/10 bg-white"}`}
                   >
-                    {choice.label}
+                    <span className="block font-medium text-ink">{choice.label}</span>
+                    <span className="mt-0.5 block text-xs text-ink-muted">{choice.description}</span>
                   </button>
                 ))}
               </div>

@@ -14,10 +14,13 @@ import {
 } from "@/lib/validation/team-application";
 
 const ROLE_INTEREST_LABELS: Record<string, string> = {
-  "research-editorial": "Research & Editorial",
-  "design-technology": "Design & Technology",
-  "community-outreach": "Community & Outreach",
-  "operations-admin": "Operations & Administration",
+  "curriculum-historian": "Curriculum Historian / Content Lead",
+  "instructional-designer": "Instructional Designer",
+  "fullstack-engineer": "Full-Stack Engineer",
+  "community-cohort-manager": "Community & Cohort Manager",
+  "operations-program-lead": "Operations & Program Lead",
+  "social-media-manager": "Social Media Manager",
+  "academic-partnerships-lead": "Academic Partnerships Lead",
   other: "Other",
 };
 

@@ -4,7 +4,7 @@ import JoinTeamClient from "./join-team-client";
 export const metadata: Metadata = {
   title: "Join Our Team",
   description:
-    "Volunteer with the Mikaelson Institute for African Studies, research and editorial, design and technology, community and outreach, or operations and administration.",
+    "Volunteer with the Mikaelson Institute for African Studies as a curriculum historian, instructional designer, full-stack engineer, community manager, program lead, social media manager, or academic partnerships lead.",
   alternates: { canonical: "/join-team" },
 };
 
