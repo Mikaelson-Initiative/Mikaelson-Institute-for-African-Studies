@@ -82,11 +82,11 @@ export default function UbuntuPage() {
               At Mikaelson Institute for African Studies, Ubuntu informs how we understand intellectual life. Knowledge does not exist only for the person who discovers it, it must strengthen the community.
             </p>
             <p className="mt-6 text-lg text-ink-muted">
-              In practice, Ubuntu is the Institute&rsquo;s free, cohort-based
-              learning program in African history: no tuition, no application
-              fee. Our goal is to reach 10,000,000 students and researchers
-              across the continent and its diaspora, building a shared,
-              rigorous foundation in African history and thought.
+              In practice, Ubuntu is the Institute&rsquo;s cohort-based
+              learning program in African history. Our goal is to reach
+              10,000,000 students and researchers across the continent and
+              its diaspora, building a shared, rigorous foundation in
+              African history and thought.
             </p>
           </Reveal>
           <Reveal delay={0.1}>

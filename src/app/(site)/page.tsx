@@ -18,7 +18,7 @@ import { heroConcernWords } from "@/lib/hero-concerns";
 export const metadata: Metadata = {
   title: { absolute: "Mikaelson Institute for African Studies" },
   description:
-    "A pan-African academic research institute publishing scholarship in history and decolonization, society and politics, arts and culture, and religion and philosophy, and home to Ubuntu, our free cohort-based learning program.",
+    "A pan-African academic research institute publishing scholarship in history and decolonization, society and politics, arts and culture, and religion and philosophy, and home to Ubuntu, our cohort-based learning program.",
   alternates: { canonical: "/" },
 };
 
@@ -51,11 +51,11 @@ export default function HomePage() {
             </StaggerItem>
             <StaggerItem>
               <p className="mx-auto mt-4 max-w-2xl text-sm text-paper/70">
-                Ubuntu is the Institute&rsquo;s free, cohort-based learning
-                program in African history: no tuition, no application fee.
-                Our goal is to reach 10,000,000 students and researchers
-                across the continent and its diaspora, building a shared,
-                rigorous foundation in African history and thought.
+                Ubuntu is the Institute&rsquo;s cohort-based learning
+                program in African history. Our goal is to reach
+                10,000,000 students and researchers across the continent
+                and its diaspora, building a shared, rigorous foundation
+                in African history and thought.
               </p>
             </StaggerItem>
             <StaggerItem>
