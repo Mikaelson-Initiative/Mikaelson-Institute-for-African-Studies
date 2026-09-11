@@ -32,7 +32,11 @@ export function RotatingWord({ words, className = "" }: { words: string[]; class
     <span className="relative inline-block">
       <span
         aria-hidden="true"
-        style={{ minWidth: `${longestWordChars}ch` }}
+        // Capped at 85vw: on a narrow viewport the hero's large type size
+        // makes `${longestWordChars}ch` alone (sized for "Decolonization")
+        // wider than the screen, pushing the headline past its container.
+        // Clamping still reserves the full width once there's room for it.
+        style={{ minWidth: `clamp(0px, ${longestWordChars}ch, 85vw)` }}
         className={`relative inline-block text-center ${className}`}
       >
         <AnimatePresence mode="wait" initial={false}>
