@@ -10,19 +10,9 @@ import { getClientIp, formIpLimiter, rateLimitOrResponse } from "@/lib/rate-limi
 import {
   ACCEPTED_CV_FILE_TYPES,
   MAX_CV_FILE_SIZE_BYTES,
+  ROLE_INTEREST_LABELS,
   teamApplicationFieldsSchema,
 } from "@/lib/validation/team-application";
-
-const ROLE_INTEREST_LABELS: Record<string, string> = {
-  "curriculum-historian": "Curriculum Historian / Content Lead",
-  "instructional-designer": "Instructional Designer",
-  "fullstack-engineer": "Full-Stack Engineer",
-  "community-cohort-manager": "Community & Cohort Manager",
-  "operations-program-lead": "Operations & Program Lead",
-  "social-media-manager": "Social Media Manager",
-  "academic-partnerships-lead": "Academic Partnerships Lead",
-  other: "Other",
-};
 
 // Same Vercel Blob / local-disk fallback pattern as paper submissions
 // (see src/app/api/submissions/route.ts) — Vercel Functions have a

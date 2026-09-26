@@ -5,58 +5,9 @@ import { ArrowRight, ArrowLeft, CheckCircle2, Loader2, Upload } from "lucide-rea
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { ROLE_CHOICES } from "@/lib/validation/team-application";
 
 type Step = "name" | "contact" | "role" | "availability" | "experience" | "motivation" | "success";
-
-const ROLE_CHOICES = [
-  {
-    value: "curriculum-historian",
-    label: "Curriculum Historian / Content Lead",
-    description:
-      "Research and write accurate, in-depth module content, and review historical claims before they go live.",
-  },
-  {
-    value: "instructional-designer",
-    label: "Instructional Designer",
-    description:
-      "Turn content into effective learning experiences: pacing, quizzes, learning objectives, and assessment design.",
-  },
-  {
-    value: "fullstack-engineer",
-    label: "Full-Stack Engineer",
-    description:
-      "Build and maintain the LMS platform, our content system, and the tools that power it.",
-  },
-  {
-    value: "community-cohort-manager",
-    label: "Community & Cohort Manager",
-    description:
-      "Run student cohorts, moderate live masterclasses, and support learners through the program.",
-  },
-  {
-    value: "operations-program-lead",
-    label: "Operations & Program Lead",
-    description:
-      "Own the release calendar and coordinate across teams so the program ships on schedule.",
-  },
-  {
-    value: "social-media-manager",
-    label: "Social Media Manager",
-    description:
-      "Grow our audience across social platforms and help tell the Institute's story.",
-  },
-  {
-    value: "academic-partnerships-lead",
-    label: "Academic Partnerships Lead",
-    description:
-      "Build relationships with universities and African studies departments, and source masterclass speakers.",
-  },
-  {
-    value: "other",
-    label: "Other",
-    description: "Something else you'd like to help with.",
-  },
-];
 
 export default function JoinTeamClient() {
   const [step, setStep] = useState<Step>("name");

@@ -7,6 +7,7 @@ import Image from "next/image";
 import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake, UserPlus, AlertCircle, Loader2, GraduationCap } from "lucide-react";
 import { useState } from "react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
+import { ROLE_INTEREST_LABELS } from "@/lib/validation/team-application";
 
 type ApplicationWithUser = CohortApplication & { user: { name: string | null; email: string | null } };
 type WeekWithSteps = Week & { steps: ModuleStep[] };
@@ -18,14 +19,6 @@ type Section = "overview" | "messages" | "submissions" | "applications" | "team"
 const SUBMISSION_STATUSES = ["submitted", "in_review", "revisions_requested", "accepted", "rejected", "published"] as const;
 const CONTRIBUTION_STATUSES = ["pending", "completed", "failed"] as const;
 const APPLICATION_STATUSES = ["pending", "admitted", "rejected", "waitlisted"] as const;
-
-const ROLE_INTEREST_LABELS: Record<string, string> = {
-  "research-editorial": "Research & Editorial",
-  "design-technology": "Design & Technology",
-  "community-outreach": "Community & Outreach",
-  "operations-admin": "Operations & Administration",
-  other: "Other",
-};
 
 export function AdminDashboardClient({
   contactMessages,
