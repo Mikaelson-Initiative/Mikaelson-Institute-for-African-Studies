@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { KineticTeam, type TeamCategory } from "@/components/kinetic-team";
 import { prisma } from "@/lib/prisma";
+import { TEAM_CATEGORIES } from "@/lib/team-categories";
 
 export const metadata: Metadata = {
   title: "Team",
@@ -22,15 +23,7 @@ export const revalidate = 60;
 //
 // RULE: Do NOT invent names, credentials, affiliations, or biographies.
 // Categories with no rows render the component's placeholder skeleton rows.
-const CATEGORY_ORDER = [
-  "Executive Leadership",
-  "Research Fellows",
-  "Research Associates",
-  "Editorial Team",
-  "Library & Archives",
-  "Advisory Council",
-];
-
+// Section order comes from TEAM_CATEGORIES (src/lib/team-categories.ts).
 export default async function TeamPage() {
   const members = await prisma.teamMember.findMany({
     orderBy: [{ category: "asc" }, { sortOrder: "asc" }],
@@ -49,7 +42,7 @@ export default async function TeamPage() {
     byCategory.set(member.category, list);
   }
 
-  const categories: TeamCategory[] = CATEGORY_ORDER.map((label) => ({
+  const categories: TeamCategory[] = TEAM_CATEGORIES.map((label) => ({
     label,
     members: byCategory.get(label) ?? [],
   }));

@@ -7,6 +7,7 @@ import Image from "next/image";
 import { FileText, Mail, Users, LogOut, ExternalLink, Check, Book, Handshake, UsersRound, Plus, Pencil, Trash2, Camera, LayoutDashboard, HeartHandshake, UserPlus, AlertCircle, Loader2, GraduationCap } from "lucide-react";
 import { useState } from "react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
+import { TEAM_CATEGORIES } from "@/lib/team-categories";
 import { ROLE_INTEREST_LABELS } from "@/lib/validation/team-application";
 
 type ApplicationWithUser = CohortApplication & { user: { name: string | null; email: string | null } };
@@ -511,7 +512,7 @@ export function AdminDashboardClient({
                   <div className="grid grid-cols-2 gap-4">
                     <div><label className="text-xs font-semibold uppercase text-ink-muted">Name</label><input required defaultValue={editTeam?.name} name="name" type="text" className="mt-1 w-full rounded border border-ink/10 px-3 py-2 text-sm focus:border-teal-deep focus:outline-none" /></div>
                     <div><label className="text-xs font-semibold uppercase text-ink-muted">Role</label><input required defaultValue={editTeam?.role} name="role" type="text" className="mt-1 w-full rounded border border-ink/10 px-3 py-2 text-sm focus:border-teal-deep focus:outline-none" /></div>
-                    <div><label className="text-xs font-semibold uppercase text-ink-muted">Category</label><select required defaultValue={editTeam?.category} name="category" className="mt-1 w-full rounded border border-ink/10 px-3 py-2 text-sm focus:border-teal-deep focus:outline-none"><option value="Executive Leadership">Executive Leadership</option><option value="Research Fellows">Research Fellows</option><option value="Research Associates">Research Associates</option><option value="Editorial Team">Editorial Team</option><option value="Library & Archives">Library &amp; Archives</option><option value="Advisory Council">Advisory Council</option></select></div>
+                    <div><label className="text-xs font-semibold uppercase text-ink-muted">Category</label><select required defaultValue={editTeam?.category} name="category" className="mt-1 w-full rounded border border-ink/10 px-3 py-2 text-sm focus:border-teal-deep focus:outline-none">{TEAM_CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
                     <div><label className="text-xs font-semibold uppercase text-ink-muted">Display Index (e.g. 01)</label><input required defaultValue={editTeam?.displayIndex} name="displayIndex" type="text" className="mt-1 w-full rounded border border-ink/10 px-3 py-2 text-sm focus:border-teal-deep focus:outline-none" /></div>
                   </div>
                   <div><label className="text-xs font-semibold uppercase text-ink-muted">Affiliation (Optional)</label><input defaultValue={editTeam?.affiliation || ""} name="affiliation" type="text" className="mt-1 w-full rounded border border-ink/10 px-3 py-2 text-sm focus:border-teal-deep focus:outline-none" /></div>
