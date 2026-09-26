@@ -10,7 +10,7 @@ function parseFields(formData: FormData) {
     genre: formData.get("genre"),
     imgUrl: formData.get("imgUrl"),
     linkUrl: formData.get("linkUrl"),
-    sortOrder: formData.get("sortOrder") || "0",
+    sortOrder: formData.get("sortOrder") || undefined,
   });
 }
 

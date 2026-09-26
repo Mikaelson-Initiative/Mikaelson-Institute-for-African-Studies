@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     category: formData.get("category"),
     displayIndex: formData.get("displayIndex") || "",
     affiliation: formData.get("affiliation") || null,
-    sortOrder: formData.get("sortOrder") || "0",
+    sortOrder: formData.get("sortOrder") || undefined,
   });
   if (!fields.success) {
     return NextResponse.json(
@@ -91,7 +91,7 @@ export async function PATCH(request: Request) {
     category: formData.get("category"),
     displayIndex: formData.get("displayIndex") || "",
     affiliation: formData.get("affiliation") || null,
-    sortOrder: formData.get("sortOrder") || "0",
+    sortOrder: formData.get("sortOrder") || undefined,
   });
   if (!fields.success) {
     return NextResponse.json(

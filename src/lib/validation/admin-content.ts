@@ -6,19 +6,19 @@ export const bookFieldsSchema = z.object({
   genre: z.string().trim().min(1, "Genre is required.").max(100),
   imgUrl: z.string().trim().min(1, "Image URL is required.").max(2000),
   linkUrl: z.string().trim().min(1, "Link URL is required.").max(2000),
-  sortOrder: z.coerce.number().int(),
+  sortOrder: z.coerce.number().int().optional(),
 });
 
 export const galleryItemFieldsSchema = z.object({
   title: z.string().trim().min(1, "Title is required.").max(300),
   description: z.string().trim().max(2000).nullable(),
-  sortOrder: z.coerce.number().int(),
+  sortOrder: z.coerce.number().int().optional(),
 });
 
 export const partnerFieldsSchema = z.object({
   name: z.string().trim().min(1, "Name is required.").max(200),
   type: z.string().trim().max(100).nullable(),
-  sortOrder: z.coerce.number().int(),
+  sortOrder: z.coerce.number().int().optional(),
 });
 
 export const teamMemberFieldsSchema = z.object({
@@ -27,5 +27,5 @@ export const teamMemberFieldsSchema = z.object({
   category: z.string().trim().min(1, "Category is required.").max(100),
   displayIndex: z.string().trim().max(50),
   affiliation: z.string().trim().max(300).nullable(),
-  sortOrder: z.coerce.number().int(),
+  sortOrder: z.coerce.number().int().optional(),
 });

@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   const fields = partnerFieldsSchema.safeParse({
     name: formData.get("name"),
     type: formData.get("type") || null,
-    sortOrder: formData.get("sortOrder") || "0",
+    sortOrder: formData.get("sortOrder") || undefined,
   });
   if (!fields.success) {
     return NextResponse.json(
@@ -85,7 +85,7 @@ export async function PATCH(request: Request) {
   const fields = partnerFieldsSchema.safeParse({
     name: formData.get("name"),
     type: formData.get("type") || null,
-    sortOrder: formData.get("sortOrder") || "0",
+    sortOrder: formData.get("sortOrder") || undefined,
   });
   if (!fields.success) {
     return NextResponse.json(
