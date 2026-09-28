@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Reveal } from "@/components/motion/reveal";
 import { SectionLabel } from "@/components/section-label";
 import SocialCards, { type CardItem } from "@/components/ui/card-fan-carousel";
+import { ClippedTabs } from "@/components/ui/clipped-tabs";
 
 export type Genre = {
   id: string;
@@ -23,32 +24,12 @@ export function BooksClient({ genres }: { genres: Genre[] }) {
       {/* ── Genre filter tabs ─────────────────────────────────── */}
       <Reveal>
         <SectionLabel>Browse by Research Area</SectionLabel>
-        <div
-          role="tablist"
-          aria-label="Filter books by research area"
-          className="mt-5 flex flex-wrap gap-2"
-        >
-          {genres.map((genre) => {
-            const isActive = genre.id === activeGenre;
-            return (
-              <button
-                key={genre.id}
-                role="tab"
-                id={`tab-${genre.id}`}
-                aria-selected={isActive}
-                aria-controls={`panel-${genre.id}`}
-                onClick={() => setActiveGenre(genre.id)}
-                className={`rounded-full border px-5 py-2 text-sm font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-turquoise ${
-                  isActive
-                    ? "border-teal-deep bg-teal-deep text-paper shadow-sm"
-                    : "border-ink/20 bg-paper text-ink hover:border-teal-deep hover:text-teal-deep"
-                }`}
-              >
-                {genre.label}
-              </button>
-            );
-          })}
-        </div>
+        <ClippedTabs
+          items={genres}
+          active={activeGenre}
+          onChange={setActiveGenre}
+          ariaLabel="Filter books by research area"
+        />
       </Reveal>
 
       {/* ── Fan carousel per genre ───────────────────────────── */}

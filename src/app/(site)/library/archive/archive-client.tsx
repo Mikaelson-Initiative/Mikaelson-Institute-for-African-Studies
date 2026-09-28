@@ -8,6 +8,7 @@ import { Reveal } from "@/components/motion/reveal";
 import { SectionLabel } from "@/components/section-label";
 import { PlaceholderNotice } from "@/components/placeholder-notice";
 import SocialCards, { type CardItem } from "@/components/ui/card-fan-carousel";
+import { ClippedTabs } from "@/components/ui/clipped-tabs";
 
 type Category = {
   id: string;
@@ -97,32 +98,12 @@ export default function ArchiveClient() {
         {/* ── Category filter tabs ─────────────────────────────────── */}
         <Reveal>
           <SectionLabel>Browse by Research Area</SectionLabel>
-          <div
-            role="tablist"
-            aria-label="Filter archive by research area"
-            className="mt-5 flex flex-wrap gap-2"
-          >
-            {categories.map((cat) => {
-              const isActive = cat.id === activeCategory;
-              return (
-                <button
-                  key={cat.id}
-                  role="tab"
-                  id={`tab-${cat.id}`}
-                  aria-selected={isActive}
-                  aria-controls={`panel-${cat.id}`}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`rounded-full border px-5 py-2 text-sm font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-turquoise ${
-                    isActive
-                      ? "border-teal-deep bg-teal-deep text-paper shadow-sm"
-                      : "border-ink/20 bg-paper text-ink hover:border-teal-deep hover:text-teal-deep"
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              );
-            })}
-          </div>
+          <ClippedTabs
+            items={categories}
+            active={activeCategory}
+            onChange={setActiveCategory}
+            ariaLabel="Filter archive by research area"
+          />
         </Reveal>
 
         {/* ── Cards or empty state per category ────────────────────── */}
