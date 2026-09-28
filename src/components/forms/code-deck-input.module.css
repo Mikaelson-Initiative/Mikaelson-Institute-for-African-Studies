@@ -1,0 +1,262 @@
+/* Code deck verify animation. The field's own look comes from the page's
+   classes; everything here only runs after the code is submitted. */
+
+@property --deck-spin {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.wrap {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  /* Cards are wider than the gap between the field's digits, so as they
+     lift out the digits spread to --pitch apart and never cover each
+     other. Six cards at 38px take 228px: inside the field even at 375px. */
+  --card-w: 2.125rem;
+  --card-h: 2.875rem;
+  --pitch: 38px;
+  position: relative;
+}
+
+/* While the deck plays, the input keeps its box, border and focus ring,
+   but its text hands over to the digit cards drawn in the same place. */
+.inputHidden {
+  color: transparent !important;
+  caret-color: transparent;
+}
+
+/* Mirrors the input's text box (px-5 py-4 text-3xl tracking-widest,
+   centred) so each digit lands exactly on the input's own digit. */
+.deck {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.25rem;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  letter-spacing: 0.1em;
+  color: var(--mias-ink);
+  pointer-events: none;
+}
+
+.digit {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+  opacity: 0;
+  transition:
+    transform 420ms var(--ease-in-out),
+    opacity 180ms ease;
+}
+
+.wrap:not([data-status="idle"]) .digit {
+  opacity: 1;
+  transition-duration: 420ms, 0ms;
+}
+
+/* The card behind each digit, in the field's own white and teal. The
+   glyph's centre is half a letter-space left of the span's centre. */
+.digit::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin: calc(var(--card-h) / -2) 0 0 calc(var(--card-w) / -2 - 0.05em);
+  border: 1px solid rgb(0 62 69 / 0.2);
+  border-radius: 0.75rem;
+  background: var(--mias-paper);
+  box-shadow: 0 6px 16px rgb(32 29 22 / 0.12);
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out),
+    border-color 200ms ease,
+    box-shadow 250ms ease;
+}
+
+.wrap:not([data-status="idle"]) .digit::before {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--i) * 30ms);
+}
+
+/* Cards: the digits lift out and spread to one card-width apart. */
+.wrap:is([data-status="checking"], [data-status="error"]) .digit {
+  transform: translateX(calc(var(--o) * var(--pitch) - var(--dx, 0px)));
+}
+
+/* Fan: tipped out like a hand of cards, drawn in a little. */
+.wrap[data-status="checking"][data-stage="fan"] .digit {
+  transform: translate(
+      calc(var(--o) * var(--pitch) * 0.8 - var(--dx, 0px)),
+      calc(max(var(--o), var(--o) * -1) * 2px)
+    )
+    rotate(calc(var(--o) * 5deg));
+  transition-delay: calc(var(--i) * 30ms);
+}
+
+/* Stack: gathered into one deck at the centre, a pixel or two apart. */
+.wrap:is([data-status="checking"][data-stage="stack"], [data-status="verified"]) .digit {
+  transform: translate(calc(var(--dx, 0px) * -1 + var(--o) * 1.5px), calc(var(--o) * -1.5px));
+  transition-delay: calc((5 - var(--i)) * 30ms);
+  color: transparent;
+}
+
+/* Checking: a teal light runs round the top card's edge until the
+   answer comes back (constant motion, linear). */
+.digit[data-top]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin: calc(var(--card-h) / -2) 0 0 calc(var(--card-w) / -2 - 0.05em);
+  padding: 1.5px;
+  border-radius: 0.75rem;
+  background: conic-gradient(from var(--deck-spin), transparent 0 65%, var(--mias-teal-deep) 85%, transparent 100%);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.wrap[data-status="checking"][data-stage="stack"] .digit[data-top]::after {
+  opacity: 1;
+  animation: deck-spin 1100ms linear infinite;
+}
+
+@keyframes deck-spin {
+  to {
+    --deck-spin: 360deg;
+  }
+}
+
+/* Verified: the card takes a teal edge and glow, a small burst, a tick. */
+.wrap[data-status="verified"] .digit[data-top]::before {
+  border-color: var(--mias-teal-deep);
+  box-shadow:
+    0 0 0 4px rgb(0 62 69 / 0.12),
+    0 8px 20px rgb(0 62 69 / 0.18);
+}
+
+.burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.burst span {
+  position: absolute;
+  width: 2px;
+  height: 0.5rem;
+  margin: -0.25rem 0 0 -1px;
+  border-radius: 1px;
+  background: var(--mias-teal-deep);
+  opacity: 0;
+}
+
+.wrap[data-status="verified"] .burst span {
+  animation: deck-spark 550ms var(--ease-out) 80ms both;
+}
+
+@keyframes deck-spark {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(-2.2rem) scaleY(0.4);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(-3.1rem) scaleY(1);
+  }
+}
+
+.tick {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.75rem 0 0 -0.75rem;
+}
+
+.tick path {
+  fill: none;
+  stroke: var(--mias-teal-deep);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+}
+
+.wrap[data-status="verified"] .tick path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 300ms var(--ease-out) 200ms;
+}
+
+/* Error: the cards lay back out along the field, flash red and shake,
+   then drop back into the field's text. */
+.wrap[data-status="error"] .deck {
+  animation: deck-shake 320ms var(--ease-out);
+}
+
+.wrap[data-status="error"] .digit::before {
+  border-color: rgb(220 38 38 / 0.5);
+}
+
+@keyframes deck-shake {
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+/* Reduced motion: the cards and verdict still show (they explain what's
+   happening), but nothing fans, stacks, shakes, spins or bursts. */
+@media (prefers-reduced-motion: reduce) {
+  .wrap .digit,
+  .wrap[data-status] .digit {
+    transform: none;
+    color: var(--mias-ink);
+  }
+
+  /* Without the spread the cards would overlap, so they don't appear:
+     the digits stay put in the field while it checks. */
+  .wrap .digit::before,
+  .wrap:not([data-status="idle"]) .digit::before,
+  .digit[data-top]::after {
+    opacity: 0 !important;
+  }
+
+  /* Without the stack, the verified tick replaces the row of cards. */
+  .wrap[data-status="verified"] .digit {
+    opacity: 0;
+  }
+
+  .wrap[data-status="error"] .deck,
+  .wrap[data-status="checking"][data-stage="stack"] .digit[data-top]::after,
+  .wrap[data-status="verified"] .burst span {
+    animation: none;
+  }
+}

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { CodeDeckInput, useCodeDeck } from "@/components/forms/code-deck-input";
 
 type Step = "email" | "code";
 
@@ -19,6 +20,7 @@ function LearnLoginForm() {
   const [code, setCode] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const deck = useCodeDeck();
 
   const handleSubmitEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,14 +46,18 @@ function LearnLoginForm() {
     }
   };
 
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (code.length !== 6) return;
+  // Runs by itself once the sixth digit is in (typed, pasted or autofilled);
+  // there's no Verify button. Enter still submits the form.
+  const verifyCode = async (value: string) => {
+    if (value.length !== 6 || deck.status !== "idle") return;
     setError(null);
     setPending(true);
     try {
-      const result = await signIn("email-code", { email, code, redirect: false });
-      if (!result || result.error) {
+      const verified = await deck.run(async () => {
+        const result = await signIn("email-code", { email, code: value, redirect: false });
+        return Boolean(result && !result.error);
+      });
+      if (!verified) {
         setError("That code is incorrect or expired.");
         return;
       }
@@ -59,6 +65,17 @@ function LearnLoginForm() {
     } finally {
       setPending(false);
     }
+  };
+
+  const handleVerifyCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    verifyCode(code);
+  };
+
+  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setCode(value);
+    if (value.length === 6) verifyCode(value);
   };
 
   return (
@@ -145,25 +162,13 @@ function LearnLoginForm() {
               </div>
               <form className="mt-2 w-full" onSubmit={handleVerifyCode}>
                 <label htmlFor="learn-login-code" className="sr-only">Login Code</label>
-                <input
+                <CodeDeckInput
                   id="learn-login-code"
-                  type="text"
-                  placeholder="000 000"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  pattern="\d*"
-                  maxLength={6}
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
+                  onChange={handleCodeChange}
+                  status={deck.status}
                   className="w-full rounded-2xl border border-teal-deep/20 bg-white px-5 py-4 text-center text-3xl tracking-widest text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-2 focus:ring-teal-deep focus:outline-none"
                 />
-                <Button
-                  type="submit"
-                  disabled={code.length !== 6 || pending}
-                  className={`mt-6 w-full ${code.length === 6 ? "shadow-[0_0_20px_rgba(46,75,70,0.6)]" : ""}`}
-                >
-                  Verify Code
-                </Button>
                 {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
               </form>
             </motion.div>
