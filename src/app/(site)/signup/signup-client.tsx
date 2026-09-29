@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { signIn, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { CodeDeckInput, useCodeDeck } from "@/components/forms/code-deck-input";
+import { EnvelopeSend, useEnvelopeSend } from "@/components/ui/envelope-send";
 import { cohortDonationTiers, formatNaira } from "@/lib/cohort-donation-tiers";
 
 type Step = "email" | "code" | "name" | "details" | "q1" | "q2" | "about" | "motivation" | "donate" | "success" | "login" | "already_applied";
@@ -36,6 +37,7 @@ export default function SignupClient() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const deck = useCodeDeck();
+  const envelope = useEnvelopeSend();
 
   // Application data
   const [name, setName] = useState("");
@@ -157,27 +159,31 @@ export default function SignupClient() {
     setError(null);
     setPending(true);
     try {
-      const response = await fetch("/api/cohort-application", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name || undefined,
-          phoneNumber,
-          gender,
-          nationality,
-          stateOfOrigin,
-          additionalInfo: additionalInfo || undefined,
-          firstTimeStudying,
-          primaryGoal,
-          about,
-          motivation,
-        }),
+      // The next step waits until the envelope has flown.
+      const sent = await envelope.run(async () => {
+        const response = await fetch("/api/cohort-application", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: name || undefined,
+            phoneNumber,
+            gender,
+            nationality,
+            stateOfOrigin,
+            additionalInfo: additionalInfo || undefined,
+            firstTimeStudying,
+            primaryGoal,
+            about,
+            motivation,
+          }),
+        });
+        if (!response.ok) {
+          setError("Couldn't submit your application, try again.");
+          return false;
+        }
+        return true;
       });
-      if (!response.ok) {
-        setError("Couldn't submit your application, try again.");
-        return;
-      }
-      setStep("donate");
+      if (sent) setStep("donate");
     } finally {
       setPending(false);
     }
@@ -674,14 +680,16 @@ export default function SignupClient() {
                   rows={5}
                   className="w-full rounded-2xl border border-teal-deep/20 bg-white px-5 py-4 text-sm text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
                 />
-                <Button
-                  type="submit"
-                  disabled={motivation.trim().length < 20 || pending}
-                  className={`mt-6 w-full ${motivation.trim().length >= 20 ? 'shadow-[0_0_20px_rgba(46,75,70,0.6)]' : ''}`}
-                >
-                  {pending ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
-                  {pending ? "Submitting…" : "Submit Application"}
-                </Button>
+                <EnvelopeSend status={envelope.status}>
+                  <Button
+                    type="submit"
+                    disabled={motivation.trim().length < 20 || pending}
+                    className={`mt-6 w-full ${motivation.trim().length >= 20 ? 'shadow-[0_0_20px_rgba(46,75,70,0.6)]' : ''}`}
+                  >
+                    {pending ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
+                    {pending ? "Submitting…" : "Submit Application"}
+                  </Button>
+                </EnvelopeSend>
                 {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
               </form>
             </motion.div>

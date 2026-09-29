@@ -5,6 +5,7 @@ import { ArrowRight, ArrowLeft, CheckCircle2, Loader2, Upload } from "lucide-rea
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { EnvelopeSend, useEnvelopeSend } from "@/components/ui/envelope-send";
 import { ROLE_CHOICES } from "@/lib/validation/team-application";
 
 type Step = "name" | "contact" | "role" | "availability" | "experience" | "motivation" | "success";
@@ -12,6 +13,7 @@ type Step = "name" | "contact" | "role" | "availability" | "experience" | "motiv
 export default function JoinTeamClient() {
   const [step, setStep] = useState<Step>("name");
   const [pending, setPending] = useState(false);
+  const envelope = useEnvelopeSend();
   const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState("");
@@ -85,15 +87,19 @@ export default function JoinTeamClient() {
       formData.set("cv", cvFile);
       formData.set("motivation", motivation);
 
-      const response = await fetch("/api/team-application", {
-        method: "POST",
-        body: formData,
+      // The success screen waits until the envelope has flown.
+      const sent = await envelope.run(async () => {
+        const response = await fetch("/api/team-application", {
+          method: "POST",
+          body: formData,
+        });
+        if (!response.ok) {
+          setError("Couldn't submit your application, try again.");
+          return false;
+        }
+        return true;
       });
-      if (!response.ok) {
-        setError("Couldn't submit your application, try again.");
-        return;
-      }
-      setStep("success");
+      if (sent) setStep("success");
     } catch {
       setError("Couldn't reach the server. Check your connection and try again.");
     } finally {
@@ -463,14 +469,16 @@ export default function JoinTeamClient() {
                   rows={5}
                   className="w-full rounded-2xl border border-teal-deep/20 bg-white px-5 py-4 text-sm text-ink placeholder:text-ink/40 focus:border-teal-deep focus:ring-1 focus:ring-teal-deep focus:outline-none"
                 />
-                <Button
-                  type="submit"
-                  disabled={motivation.trim().length < 20 || pending}
-                  className={`mt-6 w-full ${motivation.trim().length >= 20 ? "shadow-[0_0_20px_rgba(46,75,70,0.6)]" : ""}`}
-                >
-                  {pending ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
-                  {pending ? "Submitting Application…" : "Submit Application"}
-                </Button>
+                <EnvelopeSend status={envelope.status}>
+                  <Button
+                    type="submit"
+                    disabled={motivation.trim().length < 20 || pending}
+                    className={`mt-6 w-full ${motivation.trim().length >= 20 ? "shadow-[0_0_20px_rgba(46,75,70,0.6)]" : ""}`}
+                  >
+                    {pending ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
+                    {pending ? "Submitting Application…" : "Submit Application"}
+                  </Button>
+                </EnvelopeSend>
                 {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
               </form>
             </motion.div>

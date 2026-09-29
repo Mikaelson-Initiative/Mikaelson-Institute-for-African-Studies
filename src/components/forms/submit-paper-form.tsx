@@ -19,6 +19,7 @@ import {
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { EnvelopeSend, useEnvelopeSend } from "@/components/ui/envelope-send";
 import { focusAreas } from "@/lib/focus-areas";
 import {
   ACCEPTED_FILE_TYPES,
@@ -62,6 +63,7 @@ export function SubmitPaperForm() {
   const [fileError, setFileError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
+  const envelope = useEnvelopeSend();
   const abstract = watch("abstract") ?? "";
 
   // Autosave the text fields (not the file) so a long abstract survives an
@@ -107,26 +109,33 @@ export function SubmitPaperForm() {
     Object.entries(data).forEach(([key, value]) => formData.append(key, value));
     formData.append("file", file);
 
-    try {
-      const response = await fetch("/api/submissions", {
-        method: "POST",
-        body: formData,
-      });
-      const body = await response.json();
+    // The success screen waits until the envelope has flown.
+    const result = { id: null as string | null };
+    const sent = await envelope.run(async () => {
+      try {
+        const response = await fetch("/api/submissions", {
+          method: "POST",
+          body: formData,
+        });
+        const body = await response.json();
 
-      if (!response.ok) {
-        setFileError(body.fieldErrors?.file?.[0] ?? null);
-        setSubmitError(
-          body.fieldErrors ? "Fix the highlighted fields and try again." : "Something went wrong. Please try again.",
-        );
-        return;
+        if (!response.ok) {
+          setFileError(body.fieldErrors?.file?.[0] ?? null);
+          setSubmitError(
+            body.fieldErrors ? "Fix the highlighted fields and try again." : "Something went wrong. Please try again.",
+          );
+          return false;
+        }
+
+        localStorage.removeItem(AUTOSAVE_KEY);
+        result.id = body.id;
+        return true;
+      } catch {
+        setSubmitError("Couldn't reach the server. Check your connection and try again.");
+        return false;
       }
-
-      localStorage.removeItem(AUTOSAVE_KEY);
-      setSubmittedId(body.id);
-    } catch {
-      setSubmitError("Couldn't reach the server. Check your connection and try again.");
-    }
+    });
+    if (sent && result.id) setSubmittedId(result.id);
   };
 
   if (submittedId) {
@@ -353,14 +362,16 @@ export function SubmitPaperForm() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: shouldReduceMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
       >
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? (
-            <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-          ) : (
-            <ArrowRight aria-hidden="true" className="h-4 w-4" />
-          )}
-          {isSubmitting ? "Submitting…" : "Submit Paper"}
-        </Button>
+        <EnvelopeSend status={envelope.status}>
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? (
+              <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            )}
+            {isSubmitting ? "Submitting…" : "Submit Paper"}
+          </Button>
+        </EnvelopeSend>
       </motion.div>
     </form>
   );

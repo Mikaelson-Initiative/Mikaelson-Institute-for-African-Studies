@@ -6,6 +6,7 @@ import { AlertCircle, ArrowRight, CheckCircle2, Loader2, Mail, MessageSquare, Us
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { EnvelopeSend, useEnvelopeSend } from "@/components/ui/envelope-send";
 import { contactSchema, type ContactFields } from "@/lib/validation/contact";
 
 const fieldMeta = [
@@ -24,23 +25,29 @@ export function ContactForm() {
   const [focused, setFocused] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const envelope = useEnvelopeSend();
 
   const onSubmit = async (data: ContactFields) => {
     setSubmitError(null);
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        setSubmitError("Fix the highlighted fields and try again.");
-        return;
+    // The success screen waits until the envelope has flown.
+    const sent = await envelope.run(async () => {
+      try {
+        const response = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+          setSubmitError("Fix the highlighted fields and try again.");
+          return false;
+        }
+        return true;
+      } catch {
+        setSubmitError("Couldn't reach the server. Check your connection and try again.");
+        return false;
       }
-      setSubmitted(true);
-    } catch {
-      setSubmitError("Couldn't reach the server. Check your connection and try again.");
-    }
+    });
+    if (sent) setSubmitted(true);
   };
 
   if (submitted) {
@@ -185,14 +192,16 @@ export function ContactForm() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: shouldReduceMotion ? 0 : 0.18, ease: [0.16, 1, 0.3, 1] }}
       >
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? (
-            <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-          ) : (
-            <ArrowRight aria-hidden="true" className="h-4 w-4" />
-          )}
-          {isSubmitting ? "Sending…" : "Send Message"}
-        </Button>
+        <EnvelopeSend status={envelope.status}>
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? (
+              <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            )}
+            {isSubmitting ? "Sending…" : "Send Message"}
+          </Button>
+        </EnvelopeSend>
       </motion.div>
     </form>
   );
