@@ -1,6 +1,7 @@
 export const CONFERENCE_NAME = "Mikaelson Institute Research Conference";
+export const CONFERENCE_YEAR = 2027;
 
-// Confirmed by the Institute (2026-11-18). The edition/year isn't confirmed.
+// Theme and year confirmed by the Institute (2026-11-18).
 export const CONFERENCE_THEME = {
   lead: "At the Frontier",
   subject: "Knowledge Production from Africa",

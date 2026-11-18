@@ -12,11 +12,12 @@ import {
   CONFERENCE_NAME,
   CONFERENCE_THEME,
   CONFERENCE_THEME_TEXT,
+  CONFERENCE_YEAR,
 } from "@/lib/conference";
 
 export const metadata: Metadata = {
-  title: "Research Conference",
-  description: `${CONFERENCE_THEME_TEXT}. An in-person research conference in Nigeria, hosted by the Mikaelson Institute for African Studies, for scholars presenting new work on Africa across history, society and politics, arts and culture, religion and philosophy, and the sciences.`,
+  title: `Research Conference ${CONFERENCE_YEAR}`,
+  description: `${CONFERENCE_THEME_TEXT}. An in-person research conference in Nigeria in ${CONFERENCE_YEAR}, hosted by the Mikaelson Institute for African Studies, for scholars presenting new work on Africa across history, society and politics, arts and culture, religion and philosophy, and the sciences.`,
   keywords: [
     "African studies conference",
     "African studies conference Nigeria",
@@ -32,11 +33,11 @@ export const metadata: Metadata = {
 // announced" and is flagged with a PlaceholderNotice, per
 // MIAS_Design_PRD.md Sec. 7 — don't fill these in with invented dates,
 // venues or fees. In-person in Nigeria with its own call for papers is
-// confirmed (2026-11-16); the theme is confirmed (2026-11-18).
+// confirmed (2026-11-16); the theme and year are confirmed (2026-11-18).
 const TBA = "To be announced";
 
 const keyFacts = [
-  { label: "Dates", value: TBA },
+  { label: "Dates", value: `${CONFERENCE_YEAR}, dates to be announced` },
   { label: "Venue", value: "Nigeria, city to be confirmed" },
   { label: "Format", value: "In person" },
   { label: "Call for Papers", value: "Not yet open" },
@@ -49,7 +50,7 @@ const keyDates = [
   { milestone: "Notification of acceptance", date: TBA },
   { milestone: "Registration opens", date: TBA },
   { milestone: "Programme published", date: TBA },
-  { milestone: "Conference days", date: TBA },
+  { milestone: "Conference days", date: `${CONFERENCE_YEAR}, to be announced` },
 ];
 
 const practicalities = [
@@ -88,7 +89,7 @@ export default function ConferenceHomePage() {
         <div className="relative mx-auto max-w-6xl px-4 pt-20 pb-16 sm:px-6 sm:pt-28 sm:pb-20">
           <StaggerGroup staggerChildren={0.12}>
             <StaggerItem>
-              <SectionLabel tone="inverse">{CONFERENCE_NAME}</SectionLabel>
+              <SectionLabel tone="inverse">{`${CONFERENCE_NAME} ${CONFERENCE_YEAR}`}</SectionLabel>
             </StaggerItem>
             <StaggerItem>
               {/* The theme is the headline; the conference name sits in the
@@ -137,8 +138,8 @@ export default function ConferenceHomePage() {
 
       <div className="mx-auto max-w-4xl px-4 pt-10 sm:px-6">
         <PlaceholderNotice>
-          the conference edition/year, dates, host city and venue go here
-          once confirmed by the Institute, not invented for this build.
+          the conference dates, host city and venue go here once confirmed
+          by the Institute, not invented for this build.
         </PlaceholderNotice>
       </div>
 
