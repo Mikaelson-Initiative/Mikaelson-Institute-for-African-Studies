@@ -17,6 +17,7 @@ export const navGroups: NavGroup[] = [
   {
     label: "Research Community",
     links: [
+      { href: "/conference", label: "Research Conference" },
       { href: "/call-for-papers", label: "Call for Papers" },
       { href: "/framework", label: "Framework" },
       { href: "/ubuntu-program", label: "Ubuntu" },

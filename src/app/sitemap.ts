@@ -7,6 +7,7 @@ const routes = [
   "",
   "/about",
   "/call-for-papers",
+  "/conference",
   "/contact",
   "/framework",
   "/join-team",
